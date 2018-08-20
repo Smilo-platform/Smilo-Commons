@@ -115,4 +115,9 @@ public class NetworkState {
 
         LOGGER.info("Network with ID " + network.getIdentifier() + " added!");
     }
+
+    public void removeNetwork(Network network) {
+        // Todo: disconnect
+        networks.remove(network);
+    }
 }

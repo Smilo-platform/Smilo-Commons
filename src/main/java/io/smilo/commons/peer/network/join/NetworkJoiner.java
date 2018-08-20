@@ -30,6 +30,16 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Step 1 is becoming linked to a network, step 2 is becoming a full node, so that you can can participate in SPoRT
+ * and create blocks when you are elected and help securing the network by approving and declining messages.
+ *
+ * The NetworkJoiner can be used to join a network:
+ *
+ * - Call becomeFullNode to start joining a network. READY_FULL_NODE will be broadcasted and the consensus mechanism will start
+ * - Call addApprovedNode or addDeclinedNode whenever a peer within the network has approved or declined
+ * - When the consensus has finished, the network will be either removed from networkState, or the network status will be changed to FULL_NODE
+ */
 @Component
 public class NetworkJoiner implements ConsensusFinishedListener {
 
@@ -66,6 +76,12 @@ public class NetworkJoiner implements ConsensusFinishedListener {
         }
     }
 
+    /**
+     * Start the process of another peer in the network becoming a full node
+     *
+     * @param networkIdentifier network to start the consensus in
+     * @param peerIdentifier peer to be accepted or declined
+     */
     public void becomeFullNode(String networkIdentifier, String peerIdentifier) {
         Optional<Network> networkOptional = networkState.getNetworkByIdentifier(networkIdentifier);
         if (networkOptional.isPresent() && !isAlreadyApproved(networkIdentifier, peerIdentifier)) {
@@ -76,12 +92,37 @@ public class NetworkJoiner implements ConsensusFinishedListener {
         }
     }
 
+    /**
+     * Add approval for node to join network
+     *
+     * @param networkIdentifier consensus network
+     * @param peerIdentifier consensus peer
+     * @param approver public address who approved
+     */
     public void addApprovedNode(String networkIdentifier, String peerIdentifier, String approver) {
         networkState.getNetworkByIdentifier(networkIdentifier)
                 .ifPresent(n -> networkConsensus.addApproval(n, peerIdentifier, approver));
     }
 
+    /**
+     * Add approval for node to join network
+     *
+     * @param networkIdentifier consensus network
+     * @param peerIdentifier consensus peer
+     * @param decliner public address who declined
+     */
+    public void addDeclineNode(String networkIdentifier, String peerIdentifier, String decliner) {
+        networkState.getNetworkByIdentifier(networkIdentifier)
+                .ifPresent(n -> networkConsensus.addDecline(n, peerIdentifier, decliner));
+    }
 
+    /**
+     * Checks if a peer is trying to join a network
+     *
+     * @param networkIdentifier consensus network
+     * @param peerIdentifier consensus peer
+     * @return true if a peer is trying to join, false if not
+     */
     public boolean isJoining(String networkIdentifier, String peerIdentifier) {
         return networkState.getNetworkByIdentifier(networkIdentifier)
                 .map(n -> networkConsensus.consensusActive(n, peerIdentifier))
@@ -96,7 +137,7 @@ public class NetworkJoiner implements ConsensusFinishedListener {
 
     @Override
     public void consensusApproved(Network network, String identifier, Set<String> approvals) {
-         if (identifier.equals(addressManager.getDefaultAddress())) {
+        if (identifier.equals(addressManager.getDefaultAddress())) {
             LOGGER.info("I am a full node for this network! :)");
             network.setNetworkStatus(NetworkStatus.FULL_NODE);
         } else {
@@ -105,6 +146,17 @@ public class NetworkJoiner implements ConsensusFinishedListener {
 
         network.getUnconfirmedPeerIdentifiers().remove(identifier);
         network.getPeerIdentifiers().add(identifier);
-
     }
+
+    @Override
+    public void consensusDeclined(Network network, String identifier, Set<String> declines) {
+        if (identifier.equals(addressManager.getDefaultAddress())) {
+            LOGGER.info("I have been declined from network " + network.getIdentifier() + " with " + declines.size() + " votes against!");
+            networkState.getNetworks().remove(network);
+        } else {
+            network.getUnconfirmedPeerIdentifiers().remove(identifier);
+            LOGGER.info("Removing " + identifier + " from network " + network.getIdentifier() + ", it has been declined by the network with " + declines.size() + " votes!");
+        }
+    }
+
 }

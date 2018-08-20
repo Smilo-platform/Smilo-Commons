@@ -24,6 +24,7 @@ public class Consensus {
     private final Network network;
     private final String identifier;
     private final Set<String> approvedIdentifiers = new HashSet<>();
+    private final Set<String> declinedIdentifiers = new HashSet<>();
     private final ConsensusFinishedListener listener;
 
     public Consensus(Network network, String identifier, ConsensusFinishedListener listener) {
@@ -36,7 +37,15 @@ public class Consensus {
         return approvedIdentifiers;
     }
 
-    public void finish() {
+    public void approve() {
         listener.consensusApproved(network, identifier, approvedIdentifiers);
+    }
+
+    public void decline() {
+        listener.consensusDeclined(network, identifier, declinedIdentifiers);
+    }
+
+    public Set<String> getDeclinedIdentifiers() {
+        return declinedIdentifiers;
     }
 }

@@ -57,6 +57,14 @@ public class Network {
         this.networkStatus = networkStatus;
     }
 
+    /**
+     * Returns amount of peers, both full nodes and unconfirmed peers.
+     * @return total amount of peers
+     */
+    public int getAmountOfPeers() {
+        return peerIdentifiers.size() + unconfirmedPeerIdentifiers.size();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -21,5 +21,6 @@ import java.util.Set;
 public interface ConsensusFinishedListener {
 
     void consensusApproved(Network network, String identifier, Set<String> approvals);
+    void consensusDeclined(Network network, String identifier, Set<String> declines);
 
 }
