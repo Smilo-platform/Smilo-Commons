@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.nio.ByteBuffer.allocateDirect;
@@ -56,6 +57,7 @@ public class BlockStore {
 
     /**
      * Retrieves the largest fork of the blockchain.
+     *
      * @return the largest known chain on this node
      */
     public SmiloChain getLargestChain() {
@@ -87,7 +89,6 @@ public class BlockStore {
      * Saves entire smiloChain to a file, useful to save the state of the smiloChain so it doesn't have to be redownloaded later. Blockchain is stored to a file called SMILOCHAIN_DATA inside the
      * provided dbFolder.
      *
-     *
      * @return boolean Whether saving to file was successful.
      */
     public void saveToFile() {
@@ -100,7 +101,6 @@ public class BlockStore {
      * Calls getTransactionsInvolvingAddress() on all Block objects in the current Blockchain to get all relevant transactions.
      *
      * @param addressToFind Address to search through all block transaction pools for
-     *
      * @return ArrayList<String> All transactions in simplified form blocknum:sender:amount:asset:receiver of
      */
     public List<String> getAllTransactionsInvolvingAddress(String addressToFind) {
@@ -132,6 +132,7 @@ public class BlockStore {
 
     /**
      * Retrieves all forks on this node
+     *
      * @return all forks of the smilochain on this node
      */
     public List<SmiloChain> getAll() {
@@ -140,6 +141,7 @@ public class BlockStore {
 
     /**
      * Checks if any of the chain forks contains the given blockHash
+     *
      * @param blockHash blockHash to check
      * @return
      */
@@ -157,6 +159,7 @@ public class BlockStore {
 
     /**
      * Adds a chain to the list of forks.
+     *
      * @param chain chain to add
      */
     public void addSmiloChain(SmiloChain chain) {
@@ -165,13 +168,14 @@ public class BlockStore {
 
     /**
      * Retrieves a block by blockNumb
+     *
      * @param blockNum blockNum to query for
      * @return the block containing the given blockNum
      */
     public Block getBlock(long blockNum) {
         Block result = null;
-        byte[] raw = store.get(COLLECTION_NAME,longToBytes(blockNum));
-        if(raw != null && raw.length > 0) {
+        byte[] raw = store.get(COLLECTION_NAME, longToBytes(blockNum));
+        if (raw != null && raw.length > 0) {
             result = blockParser.deserialize(raw);
         }
         return result;
@@ -179,19 +183,25 @@ public class BlockStore {
 
     /**
      * Retrieves the last block from the database
+     *
      * @return the last block from the database
      */
     public Block getLatestBlockFromStore() {
-        byte[] raw = store.last(COLLECTION_NAME).getValue();
-            return blockParser.deserialize(raw);
+        Map.Entry<byte[], byte[]> m = store.last(COLLECTION_NAME);
+        if (m == null) {
+            return null;
+        }
+        byte[] raw = m.getValue();
+        return blockParser.deserialize(raw);
     }
 
     /**
      * Checks if there are any blocks stored in the database
+     *
      * @return true if a block is stored in the database, otherwise false
      */
-    public boolean blockInBlockStoreAvailable(){
-        if(store.getEntries(COLLECTION_NAME) > 0L){
+    public boolean blockInBlockStoreAvailable() {
+        if (store.getEntries(COLLECTION_NAME) > 0L) {
             LOGGER.debug("Block has an entry");
             return true;
         } else {

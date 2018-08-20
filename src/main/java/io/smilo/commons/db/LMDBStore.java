@@ -44,7 +44,7 @@ public class LMDBStore implements Store {
                 // LMDB also needs to know how large our DB might be. Over-estimating is OK.
                 .setMapSize(1_100_485_760)
                 // LMDB also needs to know how many DBs (Dbi) we want to store in this Env.
-                .setMaxDbs(5)
+                .setMaxDbs(15)
                 .setMaxReaders(100)
                 // Now let's open the Env. The same path can be concurrently opened and
                 // used in different processes, but do not open the same path twice in
