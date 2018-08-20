@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Component
 public class RequestNetStateHandler implements PayloadHandler {
 
     private final static Logger LOGGER = Logger.getLogger(RequestNetStateHandler.class);

@@ -27,7 +27,6 @@ import sun.misc.Request;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 public class RequestIdentifierHandler implements PayloadHandler {
 
     private final static Logger LOGGER = Logger.getLogger(io.smilo.commons.peer.payloadhandler.RequestIdentifierHandler.class);
