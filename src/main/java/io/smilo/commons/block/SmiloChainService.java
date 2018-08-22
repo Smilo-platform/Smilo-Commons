@@ -19,7 +19,7 @@ package io.smilo.commons.block;
 import io.smilo.commons.block.data.transaction.Transaction;
 import io.smilo.commons.ledger.LedgerManager;
 import io.smilo.commons.peer.PeerStore;
-import io.smilo.commons.peer.sport.NetworkState;
+import io.smilo.commons.peer.sport.INetworkState;
 import io.smilo.commons.pendingpool.PendingBlockDataPool;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -75,14 +75,14 @@ public class SmiloChainService {
     private final BlockParser blockGenerator;
     private final BlockStore blockStore;
     private final PeerStore peerStore;
-    private final NetworkState networkState;
+    private final INetworkState networkState;
     private final PendingBlockDataPool pendingBlockDataPool;
 
     public SmiloChainService(LedgerManager ledgerManager,
                              BlockParser blockGenerator,
                              BlockStore blockStore,
                              PeerStore peerStore,
-                             NetworkState networkState,
+                             INetworkState networkState,
                              PendingBlockDataPool pendingBlockDataPool) {
         this.peerStore = peerStore;
         this.networkState = networkState;

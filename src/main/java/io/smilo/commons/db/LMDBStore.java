@@ -335,17 +335,7 @@ public class LMDBStore implements Store {
         return result;
     }
 
-    @Override
-    public byte[] getAPI(String collection, ByteBuffer key) {
-        final ByteBuffer fetchedVal;
-        try (Txn<ByteBuffer> txn = env.txnRead()) {
-            getDatabase(collection).get(txn, key);
-            fetchedVal = txn.val();
-        }
-        if(fetchedVal == null) return null;
 
-        return toByteArray(fetchedVal);
-    }
 
     /**************** END ONLY USED BY API ************************/
 }
