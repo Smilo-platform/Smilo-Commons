@@ -32,17 +32,45 @@ public class AddressHelper {
         hexAddress.append(type.getPrefix());
         hexAddress.append(Hex.toHexString(shaValue).toLowerCase());
         hexAddress.setLength(40);
-        byte[] test = hexAddress.toString().toLowerCase().getBytes();
-        byte[] shaOfHex = HashHelper.keccak256(hexAddress.toString().toLowerCase().getBytes());
-        for (int i = 0; i < 20; i++) {
-//            if ((shaOfHex[shaOfHex.length-1-i] & 0x08) > 0) hexAddress.setCharAt(2*i, Character.toUpperCase(hexAddress.charAt(2*i)));
-//            if ((shaOfHex[shaOfHex.length-1-i] & 0x80) > 0) hexAddress.setCharAt(2*i+1, Character.toUpperCase(hexAddress.charAt(2*i+1)));
-            if ((shaOfHex[i] & 0x08) > 0) hexAddress.setCharAt(2*i+1, Character.toUpperCase(hexAddress.charAt(2*i+1)));
-            if ((shaOfHex[i] & 0x80) > 0) hexAddress.setCharAt(2*i, Character.toUpperCase(hexAddress.charAt(2*i)));
-        }
+        formatAddressCase(hexAddress);
         return hexAddress.toString();
     }
 
+    public boolean checkAddress(String address) {
+        StringBuffer hexAddress = new StringBuffer();
+        hexAddress.append(address.toLowerCase());
+        hexAddress.setLength(40);
+        formatAddressCase(hexAddress);
+        return address.equals(hexAddress.toString());
+    }
+
+    private static void formatAddressCase(StringBuffer hexAddress) {
+        byte[] test = hexAddress.toString().toLowerCase().getBytes();
+        byte[] shaOfHex = HashHelper.keccak256(hexAddress.toString().toLowerCase().getBytes());
+        for (int i = 0; i < 20; i++) {
+            if ((shaOfHex[i] & 0x08) > 0) hexAddress.setCharAt(2*i+1, Character.toUpperCase(hexAddress.charAt(2*i+1)));
+            if ((shaOfHex[i] & 0x80) > 0) hexAddress.setCharAt(2*i, Character.toUpperCase(hexAddress.charAt(2*i)));
+        }
+    }
+
+    public static AddressType getType(int numLayers) {
+        AddressType ret;
+        switch(numLayers) {
+            case 14: ret = AddressType.S1;
+                     break;
+            case 15: ret = AddressType.S2;
+                     break;
+            case 16: ret = AddressType.S3;
+                break;
+            case 17: ret = AddressType.S4;
+                break;
+            case 18: ret = AddressType.S5;
+                break;
+            default: ret = AddressType.UNSUPPORTED;
+                break;
+        }
+        return ret;
+    }
     public enum AddressType {
         S1('1'),
         S2('2'),
@@ -51,7 +79,8 @@ public class AddressHelper {
         S5('5'),
         PRIVATE_CONTRACT('e'),
         PUBLIC_CONTRACT('f'),
-        RESERVED('0');
+        RESERVED('0'),
+        UNSUPPORTED('d');
 
         private char prefix;
         AddressType(char prefix) {

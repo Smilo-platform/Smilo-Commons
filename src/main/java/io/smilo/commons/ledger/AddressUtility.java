@@ -16,6 +16,7 @@
 
 package io.smilo.commons.ledger;
 
+import io.smilo.commons.HashHelper;
 import io.smilo.commons.HashUtility;
 import io.smilo.commons.db.Store;
 import org.apache.commons.codec.binary.Base32;
@@ -155,7 +156,7 @@ public class AddressUtility {
             rollingHash = HashUtility.digestSHA256ToBase64(merkleAuthPathComponents[0] + leafStart);
         }
         position /= 2;
-        for (int i = 1; i < merkleAuthPathComponents.length - 1; i++) { //Go to merkleAuthPathComponents.length - 1 because the final hash is returned in base32 and is truncated
+        for (int i = 1; i < merkleAuthPathComponents.length - 1; i++) { //Go to merkleAuthPathComponents.length - 1 because the final hash is returned in base16 and is truncated
             //Combine the current hash with the next component, which visually would lie on the same Merkle Tree layer
             if (position % 2 == 0) { //Even; rollingHash goes first
                 rollingHash = HashUtility.digestSHA256ToBase64(rollingHash + merkleAuthPathComponents[i]);
@@ -165,14 +166,15 @@ public class AddressUtility {
             LOGGER.debug("rollingHash: " + rollingHash + " and auth component: " + merkleAuthPathComponents[i]);
             position /= 2;
         }
-        //Final hash, done differently for formatting of address (base32, set length of 32 characters for the top of the Merkle Tree)
+        //Final hash, done differently for formatting of address (base16, set length of 16 characters for the top of the Merkle Tree)
+
         if (position % 2 == 0) { //Even; rollingHash goes first
-            rollingHash = HashUtility.digestSHA256ToBase32(rollingHash + merkleAuthPathComponents[merkleAuthPathComponents.length - 1]);
+            rollingHash = AddressHelper.formatAddress(AddressHelper.getType(merkleAuthPathComponents.length), HashHelper.sha256((rollingHash + merkleAuthPathComponents[merkleAuthPathComponents.length - 1]).getBytes()));
         } else { //Odd; path component should go first
-            rollingHash = HashUtility.digestSHA256ToBase32(merkleAuthPathComponents[merkleAuthPathComponents.length - 1] + rollingHash);
+            rollingHash = AddressHelper.formatAddress(AddressHelper.getType(merkleAuthPathComponents.length), HashHelper.sha256((merkleAuthPathComponents[merkleAuthPathComponents.length - 1] + rollingHash).getBytes()));
         }
 
-        if (address.substring(2, address.length() - 4).equals(rollingHash)) { //Remove the prefix and hash suffix
+        if (address.toUpperCase().equals(rollingHash.toUpperCase())) { //Compare address and rolling hash
             return true;
         }
         return false;
@@ -268,7 +270,7 @@ public class AddressUtility {
 
     private String[][] getMerkelTreeInstance(String privateKey, String address) throws IOException, ClassNotFoundException {
         checkAndCreateMerkelTree(address, privateKey);
-        byte val[] = store.get(COLLECTION_NAME, address.getBytes(StandardCharsets.UTF_8));
+        byte val[] = store.get(COLLECTION_NAME, address.toUpperCase().getBytes(StandardCharsets.UTF_8));
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(val);
         ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
         return (String[][]) objectInputStream.readObject();
