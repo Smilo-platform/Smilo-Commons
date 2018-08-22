@@ -53,13 +53,13 @@ public class Peer implements Runnable, IPeer {
         this.initialized = false;
         this.address = socket.getInetAddress();
         this.remotePort = socket.getPort();
-        this.identifier = identifier;
+        this.identifier = (identifier != "") ? identifier : socket.getInetAddress().toString();
         setKeepAlive();
     }
 
     public Peer(String identifier, InetAddress address, int port) throws IOException {
         this(identifier, new Socket(address, port));
-        this.identifier = identifier;
+        this.identifier = (identifier != "") ? identifier : address.toString()+ ":" +port;
     }
 
     public Peer() {

@@ -93,7 +93,7 @@ public class PeerReceiver {
                         LOGGER.error("Incomplete message... " + data);
                         peer.write("ERROR the message was not complete!");
                     } catch (Exception e) {
-                        LOGGER.error("No idea what happened here...", e);
+                        LOGGER.error("No idea what happened here... MSG: " + data, e);
                     }
                 }
             });
