@@ -24,7 +24,7 @@ import io.smilo.commons.block.data.transaction.Transaction;
 import io.smilo.commons.block.data.transaction.TransactionOutput;
 import io.smilo.commons.block.data.transaction.TransactionParser;
 import io.smilo.commons.ledger.LedgerManager;
-import io.smilo.commons.peer.sport.NetworkState;
+import io.smilo.commons.peer.sport.INetworkState;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +43,7 @@ public class GenesisLoader {
     private final LedgerManager ledgerManager;
     private final TransactionParser transactionParser;
     private final BlockStore blockStore;
-    private final NetworkState networkState;
+    private final INetworkState networkState;
 
 
     /**
@@ -72,7 +72,7 @@ public class GenesisLoader {
                          LedgerManager ledgerManager,
                          TransactionParser transactionParser,
                          BlockStore blockStore,
-                         NetworkState networkState) {
+                         INetworkState networkState) {
         this.smiloChain = smiloChain;
         this.blockParser = blockParser;
         this.ledgerManager = ledgerManager;

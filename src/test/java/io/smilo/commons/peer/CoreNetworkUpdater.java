@@ -14,30 +14,14 @@
  * limitations under the License.
  */
 
-package io.smilo.commons.peer.payloadhandler;
+package io.smilo.commons.peer;
 
-import io.smilo.commons.peer.IPeer;
-import io.smilo.commons.peer.sport.INetworkState;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
-public class NetworkStateHandler implements PayloadHandler {
+public class CoreNetworkUpdater implements INetworkUpdater {
 
-    private final INetworkState networkState;
+    public void updateNetworks() {
 
-    public NetworkStateHandler(INetworkState networkState) {
-        this.networkState = networkState;
-    }
-
-    @Override
-    public void handlePeerPayload(List<String> parts, IPeer peer) {
-        networkState.setTopBlock(Integer.parseInt(parts.get(1)));
-    }
-
-    @Override
-    public PayloadType supports() {
-        return PayloadType.NETWORK_STATE;
     }
 }

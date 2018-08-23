@@ -22,7 +22,6 @@ import io.smilo.commons.peer.PeerEncoder;
 import org.apache.log4j.Logger;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.stereotype.Component;
-import sun.misc.Request;
 
 import java.util.ArrayList;
 import java.util.List;

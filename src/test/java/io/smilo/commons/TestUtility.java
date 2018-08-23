@@ -19,16 +19,12 @@ package io.smilo.commons;
 import io.smilo.commons.block.BlockStore;
 import io.smilo.commons.peer.PeerClient;
 import io.smilo.commons.peer.PeerStore;
-import io.smilo.commons.peer.network.NetworkConsensus;
-import io.smilo.commons.peer.network.link.NetworkLinker;
-import io.smilo.commons.peer.sport.NetworkState;
 import io.smilo.commons.block.genesis.GenesisLoader;
 import io.smilo.commons.db.Store;
 import io.smilo.commons.ledger.AddressManager;
 import io.smilo.commons.ledger.LedgerManager;
 import io.smilo.commons.ledger.LedgerStore;
 import io.smilo.commons.ledger.PrivateKeyGenerator;
-import io.smilo.commons.peer.sport.SportState;
 import io.smilo.commons.pendingpool.PendingBlockDataPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,9 +56,6 @@ public class TestUtility {
     private GenesisLoader genesis;
 
     @Autowired
-    private SportState sportState;
-
-    @Autowired
     private PendingBlockDataPool pendingBlockDataPool;
 
     @Autowired
@@ -76,15 +69,6 @@ public class TestUtility {
 
     @Autowired
     private Store store;
-
-    @Autowired
-    private NetworkState networkState;
-
-    @Autowired
-    private NetworkLinker networkLinker;
-
-    @Autowired
-    private NetworkConsensus networkConsensus;
 
     private String address;
     private String privateKey;
@@ -122,8 +106,6 @@ public class TestUtility {
         privateKeys.add(new AbstractMap.SimpleEntry<>("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR","BOdbzfoE9Za9a4cGQTpExBYw7mQNFo2B"));
 
         genesis.loadGenesis();
-
-        sportState.initialize(addressManager.getDefaultAddress());
     }
 
     /**
@@ -135,16 +117,12 @@ public class TestUtility {
         pendingBlockDataPool.getPendingBlockData().clear();
         ReflectionTestUtils.setField(blockStore, "chains", new ArrayList<>());
         peerStore.clear();
-        sportState.reset();
         ledgerManager.getPendingTransactions().clear();
         ledgerStore.clearAccounts();
         ReflectionTestUtils.setField(peerClient, "pendingPeers", new HashSet<>());
         store.clear("block");
         store.initializeCollection("block");
         store.initializeCollection("account");
-        ReflectionTestUtils.setField(networkState, "networks", new HashSet<>());
-        ReflectionTestUtils.setField(networkLinker, "networks", new ArrayList<>());
-        ReflectionTestUtils.setField(networkConsensus, "approvedNodes", new HashMap<>());
     }
 
     private void createFolders() {
