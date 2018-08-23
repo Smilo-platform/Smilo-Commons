@@ -1,4 +1,4 @@
-package io.smilo.core.block.genesis;
+package io.smilo.commons.block.genesis;
 
 import io.smilo.commons.block.BlockBuilder;
 import io.smilo.commons.block.SmiloChainService;

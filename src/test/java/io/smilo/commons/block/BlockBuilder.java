@@ -37,7 +37,7 @@ public class BlockBuilder {
     private AddressManager addressManager;
 
     public BlockBuildCommand blank() {
-        return blank("redeemAddress", "ledgerHash", new ArrayList<>(), "nodeSignature,comma", 0);
+        return blank(addressManager.getDefaultAddress(), "ledgerHash", new ArrayList<>(), "nodeSignature,comma", 0);
     }
 
     public BlockBuildCommand blank(Block previousBlock, String redeemAddress, String ledgerHash, List<Transaction> transactions, String nodeSignature, int nodeSignatureIndex) {
@@ -117,6 +117,8 @@ public class BlockBuilder {
             if (block.getBlockHash() == null){
                 blockParser.hash(block);
             }
+
+            blockParser.sign(block, addressManager.getDefaultPrivateKey(), addressManager.getDefaultAddressIndexOffset().intValue());
 
             return block;
         }
