@@ -63,9 +63,6 @@ public class SmiloChainService {
     private static final Logger LOGGER = Logger.getLogger(SmiloChainService.class);
     private static final int MAX_LOOP_COUNT = 10000;
 
-    //blockhash as key, set of node identifiers
-    private Map<String, Set<String>> approvedBlocks = new HashMap<>();
-    private final Set<Block> chainQueue;
     private final List<Block> blockQueue;
     
     // TODO: cleanup allBroadcastBlockHashes every now and then
@@ -88,7 +85,6 @@ public class SmiloChainService {
         this.networkState = networkState;
         this.pendingBlockDataPool = pendingBlockDataPool;
         this.blockQueue = new ArrayList<>();
-        this.chainQueue = new HashSet<>();
         this.ledgerManager = ledgerManager;
         this.blockGenerator = blockGenerator;
         this.blockStore = blockStore;
@@ -342,7 +338,6 @@ public class SmiloChainService {
                 LOGGER.debug("Remove processed transactions from BlockDataPool");
                 //Remove all transactions from the pendingTransactionPool that appear in the block
                 pendingBlockDataPool.removeTransactionsInBlock(block);
-                chainQueue.remove(block);
 
                 // Check Queue
                 LOGGER.info("Processing queue");
@@ -396,73 +391,4 @@ public class SmiloChainService {
     public Long getLastBlockTimeStamp() {
         return blockStore.getLastBlock().getTimestamp();
     }
-
-    /**
-     * Adds a valid block to the chainQueue and checks the approval rate of the block
-     * @param block the block we add to the chainQueue
-     * @return true if the block was added, false if an error occurred
-     */
-    public AddBlockResult addBlockToChainQueue(Block block) {
-        LOGGER.info("Attempting to add block...");
-
-        if (hasSeenBefore(block.getBlockHash())) {
-            LOGGER.info("Have seen block " + block.getBlockHash() + " before... not adding.");
-            return new AddBlockResult(block, AddResultType.DUPLICATE, "Block has been seen before");
-        } else {
-            //Initially, check for duplicate blocks
-            if (blockStore.containsHash(block.getBlockHash())) {
-                //Duplicate block; block has already been added. This happens all the time, as multiple peers can all broadcast the same block.
-                LOGGER.info("Duplicate block received from peer");
-                return new AddBlockResult(block, AddResultType.DUPLICATE, "Duplicate block received from peer");
-            }
-
-            // TODO: change to preconditions
-            if (!blockGenerator.isValid(block)) {
-                LOGGER.info("Block validation failed!");
-                return new AddBlockResult(block, AddResultType.VALIDATION_ERROR, "Block is not a valid block. Don't add it!");
-            }
-
-            chainQueue.add(block);
-            checkBlockApprovedStatus(block.getBlockHash());
-            return new AddBlockResult(block, AddResultType.QUEUED, "Block added to chain queue");
-        }
-    }
-
-    /**
-     * Adds an approved block to approvedBlocks when a peer approves it. Afterwards we check if 66% approved the block
-     * @param blockHash the blockhash of the block that has been approved
-     * @param peerIdentifier the identifier of the peer that approved the block
-     */
-    public void addApprovedBlock(String blockHash, String peerIdentifier) {
-        if (!hasSeenBefore(blockHash)) {
-            Set<String> identifiers = approvedBlocks.getOrDefault(blockHash, new HashSet<>());
-
-            identifiers.add(peerIdentifier);
-            approvedBlocks.put(blockHash, identifiers);
-            checkBlockApprovedStatus(blockHash);
-        }
-    }
-
-    /**
-     * Checks with a blockhash if a block has been approved by 66% of the peers
-     * If a block has 66% approval we'll retrieve the block from the chainQueue and add it to the smilochain
-     * If a block doesn't have 66% approval we'll do nothing
-     * @param blockHash the blockhash to check
-     */
-    private void checkBlockApprovedStatus(String blockHash) {
-        Set<String> identifiers = approvedBlocks.getOrDefault(blockHash, new HashSet<>());
-        int peerSize = peerStore.getPeers().size();
-
-        if((identifiers.size() * 100 / peerSize) >= 66) {
-            LOGGER.info("66 Percent approved block: " + blockHash);
-            Block block = chainQueue.stream().filter(b -> b.getBlockHash().equals(blockHash)).findFirst().orElse(null);
-            if (block == null) {
-               LOGGER.warn("Block not found in chain queue");
-            } else {
-                addBlockToSmiloChain(block);
-                approvedBlocks.remove(blockHash);
-            }
-        }
-    }
-
 }
