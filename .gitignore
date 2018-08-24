@@ -1,6 +1,7 @@
 .idea
 target
 *.iml
+*.log
 smilo.log
 .DS_Store
 

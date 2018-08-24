@@ -1,0 +1,6 @@
+# Smilo Commons
+
+Project for shared code between Smilo-Api and Smilo-Core
+
+## Run unit tests and install locally
+mvn clean install
