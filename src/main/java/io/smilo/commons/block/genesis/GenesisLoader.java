@@ -79,7 +79,7 @@ public class GenesisLoader {
         this.transactionParser = transactionParser;
         this.blockStore = blockStore;
         this.networkState = networkState;
-//        loadGenesis();
+        loadGenesis();
     }
 
     /**
