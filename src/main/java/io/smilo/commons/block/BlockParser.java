@@ -93,14 +93,14 @@ public class BlockParser implements Parser<Block>, Validator<Block> {
             String fullBlock = block.getRawBlockDataWithHash();
 
             if (!checkBlockHash(block)) {
-                LOGGER.info("Block hash mismatch error");
+                LOGGER.error("Block hash mismatch error");
             }
 
             if (!addressUtility.verifyMerkleSignature(fullBlock, block.getNodeSignature(), block.getRedeemAddress(), block.getNodeSignatureIndex())) {
-                LOGGER.info("Block didn't verify for " + block.getRedeemAddress() + " with index " + block.getNodeSignatureIndex());
-                LOGGER.info("Signature mismatch error");
-                LOGGER.info("fullBlock: " + fullBlock);
-                LOGGER.info("nodeSignature: " + block.getNodeSignature());
+                LOGGER.error("Block didn't verify for " + block.getRedeemAddress() + " with index " + block.getNodeSignatureIndex());
+                LOGGER.error("Signature mismatch error");
+                LOGGER.error("fullBlock: " + fullBlock);
+                LOGGER.error("nodeSignature: " + block.getNodeSignature());
                 return false; //Block mining node signature is not valid
             }
             LOGGER.info("Block " + block.getBlockNum() + " has valid signatures and redeemAddress.");
@@ -164,7 +164,9 @@ public class BlockParser implements Parser<Block>, Validator<Block> {
             }
             int size = msgpack.unpackBinaryHeader();
             byte [] extraData = msgpack.readPayload(size);
-            LOGGER.info("Unsupported extra data inside: " + Hex.encodeHexString(extraData));
+            if (extraData.length > 0) {
+                LOGGER.error("Unsupported extra data inside: " + Hex.encodeHexString(extraData));
+            }
             String blockHash = msgpack.unpackString();
             String blockSignature = msgpack.unpackString();
             Long blockSignatureIndex = msgpack.unpackLong();
