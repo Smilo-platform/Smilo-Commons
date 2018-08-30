@@ -53,17 +53,17 @@ public class GenesisLoader {
      * And not much love to go round
      * Can't you see
      * This is a land of confusion.
-     *
+     * <p>
      * Now this is the world we live in
      * And these are the hands we're given
      * Use them and let's start trying
      * To make it a place worth fighting for.
-     *
+     * <p>
      * This is the world we live in
      * And these are the names we're given
      * Stand up and let's start showing
      * Just where our lives are going to.
-     *
+     * <p>
      * ~ GENESIS
      * https://www.youtube.com/watch?v=QHmH1xQ2Pf4
      */
@@ -87,7 +87,10 @@ public class GenesisLoader {
      * If false, load genesis block.
      * If true, add latest block to chain and request blocks from network.
      */
-    public void loadGenesis() {
+    public Block loadGenesis() {
+        String targetAddress = "S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR";
+        BigInteger addressBalance = BigInteger.valueOf(200000000L);
+        Block genesis = new Block();
         if (blockStore.blockInBlockStoreAvailable()) {
             LOGGER.info("Loading block from DB...");
             Block latestBlock = blockStore.getLatestBlockFromStore();
@@ -97,20 +100,19 @@ public class GenesisLoader {
             } else {
                 LOGGER.error("BLOCK " + latestBlock + " NOT VALID BUT IN DB!");
             }
-            blockStore.getLastBlock();
+            genesis = blockStore.getLastBlock();
         } else {
             LOGGER.info("Loading GENESIS block...");
 
             // Create the beautiful genesis block
-            Block genesis = new Block();
             genesis.setTimestamp(1530261926L);
             genesis.setBlockNum(0);
             genesis.setPreviousBlockHash("0000000000000000000000000000000000000000000000000000000000000000");
-            genesis.setRedeemAddress("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR");
+            genesis.setRedeemAddress(targetAddress);
             genesis.setLedgerHash("0000000000000000000000000000000000000000000000000000000000000000");
             List<Transaction> transactions = new ArrayList<>();
-            Transaction firstTransaction = new Transaction(1514764800000L, "000x00123", "S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR", BigInteger.ZERO, BigInteger.ZERO,
-                    Arrays.asList(new TransactionOutput("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR", BigInteger.valueOf(200000000L))),
+            Transaction firstTransaction = new Transaction(1514764800000L, "000x00123", targetAddress, BigInteger.ZERO, BigInteger.ZERO,
+                    Arrays.asList(new TransactionOutput(targetAddress, addressBalance)),
                     "",
                     "Rl9uobWXkoR9jL/D:pvPnASeNNlSHoS9q3cXm::BLEMeJLndBsAWSbh:W8ix8xGCm4khCLAWTvwr::F3Nw25RqSA9YMZUa:K84sRwBUzLK5iKVKKRME::ben1f7jdtx7yuRbnMT4Z:rOpg3hXLsoOPKAOJ::Pn6z7SUbeX5rx/Qj:dXCHlnfutBXGhQfbhXsU::EEZXnzOwxmZ0Yv7CGUDl:UaYcmHWyKmivIruG::PV4fxbLq1yaeVkB8w6p5:pXNMuB2p6HxEhgjI::yb6eXfPhgk362YX/:j2bDpMXXHZkyavbB2MQN::k3rH4Cly8Wkd8FqN:pWE0B5vnoUw2VduGbIHE::klM9263wdee9pTygUk8V:tFKJ9w3WBPIslFH5::nK744uk4LasQcHRp:6t99iFPGd5y3WiYW12dy::WlY4eJ1quxcoyG8YDb0b:yutIXxcFHAVnAeMw::NjhEHsKKubanW9ATklez:Wqey3QLGk2TXLe8t::BJ8bzMtExwke9wiWxCTG:E2WOg2/GZFA5Rtma::E6kwEijDtyyd1C4p47dv:NezvvZrFsccsudHS::ekn9Fxeg/fyxReKm:DcgGv9oqjZDra6Zhb43x::twwAca6tB96Hvhf/:WeRbc5OadfQtifvSB5aR::Zc/sSKHiN/aJLGdO:Zx6tuh07o7hi2lYNXNgC::gUMwbMzYVK25FLiTF4k2:PdHDPaoywMrjzQ+z::cna9I1qwl2i89CW1:oybCx7leLa9tG8LZBlrq::xK45TM8pM8NIYkanl59B:P8dpjFLLZKew4c8X::3vKk7mMjv6kAhECD:ig07Wmm3vI28AWwa1lal::2AmGYKujqZREVUtOKnJp:2yAnSwwLbAkJvbrn::VVTE1g6gdxxJgccD:WJmwDEDF0AtPdNiUxzXW::skCnuK48pTE4nUZU8Vzx:y2rW0PPQEdZpSHex::y4bkRlbbJYQXvclz:xCT41uctREN4ih83pwJT::eLYdflpzTBGnr1gtKp2t:kzlreZk0acOZ85GY::4yDA/H86bjaEmRtf:jp5EblCFR1jUHzUdoq09::RFCT0JHiePzZdJS8:OCJB487OleqXv4DRXCU8::l73HWnRvlxEjGdLhCVU6:wA/EaYbODK5ZQ52T::0SxJZGOunMDTQ2VF:ngSnwyVSustkHYhjLVTH::VANLrt1wGVGPdmrLX7N6:DC7mAgsE+hjyAOGW::RQczfdblYkZq3yYPtjpg:BpOE/sS1D+v8vTiZ::PFJJ2Qb5knBVNy6Ad2mU:x2OI2VTi7t590auE::lOTIHXQ8pTLudPPN:MdRGA61Ldw8GHju2EY5d::LoWtB8oxkzJhLgCRpCf9:3KCf3KzE575vqzAP::01lt7doSuBi83d20F9E9:qsos2awhSEhRC5ir::teYMpFNp8qNk4KD6:GZRvadeWzDKWwcwyMSxG::y0XInQcPApZN4kDyRMXY:ZPRGZatmWJwAywom::TTEFhq6YJSuB75mF:XmSBy4C8ynZgNr73dJmz::Nt40LJXUEKW1vr9nDGYb:G/R9d20o54cHkvdK::UiktK87yfsiynAgfa5Hh:h1uW6AudVCo5GKve::rXVsd9pM7rKybi13RCGj:aHk9gSIJmXWQlHPC::V6zVS7w0TWSIJoDt:IVvoyRIytCJ9F6wcIfoP::kKL5KqcnqZhDhoNh:0hLH3K7LslWWs8STuGyw::z3LI3RAfW49lbvIgpsvK:YXeSPj9j4fE3mscd::4WrXR5kckg+NaA+8:daYUzG995VJVpb7TrIxB::JunALdexLCMcFZNa:RoRAhaKiLMwzDvsVr680::L8/+T9bOGhyl1byb:Ap2EV4qvDyLuAT0IXPKL::o7U94UtY9StDbpvDSg1A:Y045Ett8+Na4+fZf::wE2yzuhyGIGFQsC8zDAZ:mCteKkJ+R6rt43dZ::hb9rSVy3pTRsRhlj:rdprp1H7C7T6Q34j3HcQ::5SWiDnzJ2EbvSdfAbYfD:Tec6gf212QSJTnVs::Ji0SqLoKk7YhPa8xqzLV:NnyXwJilbS7jxVnq::ECBRzTf4JYGrfWWD:8k1n0MaBu9wOaued6deV::7L9FyGU2LOHeAXLx:Zu6wyMQu1RklOyEtMwWV::32zqkUwAqxLk0cSr:pSvQdZ70iAo5elb5xAuS::3k3HSLxLjvXmGToG:NRJmVXgD3wneC1MK8rVM::s3HdiWmbSG6S43H0:m8B53FAUVkOFW1bmoMOp::Ra7ssZneXU8wkw6J1GYn:w72SGc9wHMUY6WIv::JMdq8ljyy3dWMDHOvjRV:6hsu6YsZXtmPQ5in::VfhoaytHRzONUdLkeI0r:w2rDnWA8nVcbcXRU::ixujiOWk0NV9tiEPenhy:7p/2SQpZ9wrSZfDq::DtJJIXdy5K3OHSIg:q1oLrCsI9iVFXiiDaldu::nzSuWNj6RvaUUltc:1xzULV7BuRK5YjX0UZls::6HSzC0EesL2Wx4REqtzz:1gUwiMLUEP6OmS89::W6v0oGFueeLumLEXD1lp:uNR93nFp6M1SMNp8::iexotfZ7YSzIyFl6O31r:rZRuSF7/3SyKcJM/::0NMY4afUffqjG71e9qW7:9iwTDn5qs/d9FDZL::HKTHOHqZTACit2tP:glM16ApBu8BUEux2Xmbe::9phu0ghj55q44xX29gzk:Yts4bIfW3/+u6nvA::7k5Xjtb6KCTqJICyVV5A:bcWAa9/KLSDezwoz::j6LGoT6Qi5W4OJS58t2Q:aZ+PFvsIWULtpKAh::/vfFxu1ze0WVEgjQ:dwe2m2dRKFt8OCEL0Tv9::vjvvfx0g4e5sSklpx5bd:B9Ei9eHl4wfV5vwe::YPZu5Z+NwByghh4B:LTN6LjkguqDc3NEIV433::d3sZDskFkFNNj0fu:3vx4VcA2yY49rjcw4IBw::9JYz9BBAam/+lEyG:Cft94ztQDhjbieOA0ICy::BFbNUeOHQWkyznVnsaYd:uBGjPHxdl5nSkI5Q::7sprLO3DiZt8UnLUJEP3:mn4/ek2Uz9A1pnjq::VEwqno8WpMJGAucyC8yP:6p69QkabZ0yU3Q7h::Ecd33gie1DgW2Ncg:Yr9NrGF2MAaZ0c6ZWITL::EGXcNUrQr0LVe63B:vm9ROrqeTByPwMMS5ASF::IB6UJLBnrv3m3IzI:wjJr9VMQvfRvtUwk84rX::3TP8Pa42KDtl1uhcVMgr:x3R/T2ZYG1OiWQEe::HAPNvWHDgQwutp11LnCp:Pmlhfx5BntDY6BLv::rnRChNqXrwXLBb36:PAC3VJuq15LL9hLT8auD::T5vnEZbT0eWjI433:rvz0WRsZ2Ud1hWEduhJ4::21ADl+WGq8Vk92lg:RETVYXx6LztWbPHOZR7Q::Iazkg0bCyceGuoad:x5xTgNKN0sx87FeuVyjP::zpEFMyjJxUDUrA8G:JWwqxiuPYYwrG3aYdJ4n::Wn3jMYTY/hHUbbrI:cR4Tkm1bsS3YWqcd9I1l::OV2RsE9cz8LQMTQA:QulezeCRpKvwsNZXIjy7::JmUasYo/gA2sQQ4L:X88Eq5iDE1ihXZp6mu4W::hhe4vxIbFBjng0QWL6pJ:fgu6mo5zmgnbYz3R::i3EMrIcvEqz0shTK:YEnJM8SCWfuEi7Y0ybEs::hdIh9R9Itw4CdkoM:aZHaK7a3yrLGLgvuWANP::bjFLMsL+1V1NyrMH:BcqOwm3nAVQLUIcFy0gM::Jz4SJGu995Pyexq5:iqFARP5EVzZHbUoyESOL::YMY8W5ytAL2XsfUWGYWk:VsKmwDCK4UbhBZilo81e5YuY+B9T9VAec+nTwYFkTrUNhnevjRjtWd97IF5rfKLA3yA6UjHE3ax1/Y96DELqCQ==,SNN7701UJc0fqXfdJ6pnV8nS7zTEh9BCWolm7PYj1Dk=:B5FvaU6rC5LZFlz53lDH4JjSMrUgro0yy0JSingBTnA=:oOncFkcMwQmz16hY4vdPYvoEhQvcnQIb2+bikp/n9TQ=",
                     0L);
@@ -124,9 +126,25 @@ public class GenesisLoader {
                 smiloChain.createInitialChain(genesis);
             } catch (Exception e) {
                 LOGGER.error("The GENESIS has failed!", e);
+                return null;
             }
-            ledgerManager.updateAddressBalance("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR", BigInteger.valueOf(200000000L));
+            boolean updated = ledgerManager.updateAddressBalance(targetAddress, addressBalance);
+            if (updated) {
+                LOGGER.debug("The ledgerManager has updated address with balance " + targetAddress + " , addressBalance: " + addressBalance);
+            } else {
+                LOGGER.error("The ledgerManager has failed to updateAddressBalance " + targetAddress);
             }
-        LOGGER.info("SmiloChain initialised...");
+
+            BigInteger balance = ledgerManager.getAddressBalance(targetAddress);
+            if (!balance.equals(addressBalance)) {
+                LOGGER.error("The ledgerManager has failed to double check address balance ? WTF!  expected: " + addressBalance + ", actual: " + balance);
+            }
+
+
+        }
+        LOGGER.info("SmiloChain initialised ...");
+
+
+        return genesis;
     }
 }

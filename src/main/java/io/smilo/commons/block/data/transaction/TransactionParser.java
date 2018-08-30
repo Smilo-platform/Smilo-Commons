@@ -243,7 +243,9 @@ public class TransactionParser implements Parser<Transaction>, Validator<Transac
             BigInteger fee = msgpack.unpackBigInteger();
             int size = msgpack.unpackBinaryHeader();
             byte [] extraData = msgpack.readPayload(size);
-            LOGGER.info("Unsupported extra data inside: " + Hex.encodeHexString(extraData));
+            if (extraData.length > 0) {
+                LOGGER.error("Unsupported extra data inside: " + Hex.encodeHexString(extraData));
+            }
             String hash = msgpack.unpackString();
             String signature = msgpack.unpackString();
             Long signatureIndex = msgpack.unpackLong();

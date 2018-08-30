@@ -16,6 +16,8 @@
 
 package io.smilo.commons.db;
 
+import io.smilo.commons.block.data.transaction.TransactionParser;
+import org.apache.log4j.Logger;
 import org.lmdbjava.*;
 
 import java.io.File;
@@ -27,12 +29,17 @@ import static org.lmdbjava.Env.create;
 
 public class LMDBStore implements Store {
 
+    private static final Logger LOGGER = Logger.getLogger(TransactionParser.class);
     private final Map<String, Dbi<ByteBuffer>> dbs = new HashMap<>();
     private final Env<ByteBuffer> env;
+    private final long mapSize = 1_100_485_760;
+    private final int maxDBs = 15;
+    private final int maxReaders = 100;
 
     public LMDBStore(String folder) {
-        final File path = new File(folder);
 
+        final File path = new File(folder);
+        LOGGER.info("Starting LMDBStore, folder: " + folder + ", mapSize: " + mapSize + ", maxDBs: " + maxDBs + ", maxReaders: " + maxReaders);
         if (!path.exists()) {
             path.mkdirs();
         }
@@ -42,10 +49,10 @@ public class LMDBStore implements Store {
         // TODO: review env settings
         this.env = create()
                 // LMDB also needs to know how large our DB might be. Over-estimating is OK.
-                .setMapSize(1_100_485_760)
+                .setMapSize(mapSize)
                 // LMDB also needs to know how many DBs (Dbi) we want to store in this Env.
-                .setMaxDbs(15)
-                .setMaxReaders(100)
+                .setMaxDbs(maxDBs)
+                .setMaxReaders(maxReaders)
                 // Now let's open the Env. The same path can be concurrently opened and
                 // used in different processes, but do not open the same path twice in
                 // the same process at the same time.
@@ -88,8 +95,8 @@ public class LMDBStore implements Store {
         valBuffer.put(value).flip();
 
         try (Txn<ByteBuffer> txn = env.txnWrite()) {
-             getDatabase(collection).put(txn, keyBuffer, valBuffer);
-             txn.commit();
+            getDatabase(collection).put(txn, keyBuffer, valBuffer);
+            txn.commit();
         }
     }
 
@@ -103,7 +110,7 @@ public class LMDBStore implements Store {
             getDatabase(collection).get(txn, keyBuffer);
             fetchedVal = txn.val();
         }
-        if(fetchedVal == null || fetchedVal.remaining() == 0) return null;
+        if (fetchedVal == null || fetchedVal.remaining() == 0) return null;
         byte[] bytes = new byte[fetchedVal.remaining()];
 
         fetchedVal.get(bytes);
@@ -129,7 +136,7 @@ public class LMDBStore implements Store {
                 getDatabase(collection).get(txn, cursor.key());
                 fetchedKey = txn.key();
                 fetchedVal = txn.val();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 return null;
             }
         }
@@ -147,18 +154,18 @@ public class LMDBStore implements Store {
         try (Txn<ByteBuffer> txn = env.txnRead();
              CursorIterator<ByteBuffer> cursor = getDatabase(collection).iterate(txn)) {
 
-             Map<byte[], byte[]> result = new HashMap<>();
-             cursor.forEachRemaining(x -> {
-                 byte[] keyBytes = new byte[x.key().remaining()];
-                 x.key().get(keyBytes);
+            Map<byte[], byte[]> result = new HashMap<>();
+            cursor.forEachRemaining(x -> {
+                byte[] keyBytes = new byte[x.key().remaining()];
+                x.key().get(keyBytes);
 
-                 byte[] valueBytes = new byte[x.val().remaining()];
-                 x.val().get(valueBytes);
+                byte[] valueBytes = new byte[x.val().remaining()];
+                x.val().get(valueBytes);
 
-                 result.put(keyBytes, valueBytes);
-             });
+                result.put(keyBytes, valueBytes);
+            });
 
-             return result;
+            return result;
         }
     }
 
@@ -168,14 +175,12 @@ public class LMDBStore implements Store {
     }
 
 
-
-
     /**************** BEGIN ONLY USED BY API ************************/
 
 
     @Override
     public long getArrayLength(String collection, String key) {
-        try(Txn<ByteBuffer> txn = env.txnRead()) {
+        try (Txn<ByteBuffer> txn = env.txnRead()) {
             final Dbi<ByteBuffer> db = getDatabase(collection);
 
             // First retrieve count
@@ -185,8 +190,7 @@ public class LMDBStore implements Store {
                 long count = countBuffer.getLong();
 
                 return count;
-            }
-            else {
+            } else {
                 return 0;
             }
         }
@@ -197,7 +201,7 @@ public class LMDBStore implements Store {
     public List<byte[]> getArray(String collection, String key, long skip, long take, boolean isDescending) {
         List<byte[]> result = new ArrayList<>();
 
-        try(Txn<ByteBuffer> txn = env.txnRead()) {
+        try (Txn<ByteBuffer> txn = env.txnRead()) {
             final Dbi<ByteBuffer> db = getDatabase(collection);
 
             // First retrieve count
@@ -229,16 +233,15 @@ public class LMDBStore implements Store {
 
     @Override
     public void addToArray(String collection, String key, ByteBuffer value) {
-        try(Txn<ByteBuffer> readTxn = env.txnRead()) {
+        try (Txn<ByteBuffer> readTxn = env.txnRead()) {
             Dbi<ByteBuffer> db = getDatabase(collection);
 
             ByteBuffer arrayLengthBuffer = db.get(readTxn, toByteBuffer(key));
 
             long arrayLength;
-            if(arrayLengthBuffer != null) {
+            if (arrayLengthBuffer != null) {
                 arrayLength = arrayLengthBuffer.getLong();
-            }
-            else {
+            } else {
                 // Array does not exist yet
                 arrayLength = 0;
             }
@@ -280,7 +283,7 @@ public class LMDBStore implements Store {
     public List<byte[]> getAllAPI(String collection, long skip, long take, boolean isDescending) {
         List<byte[]> result = new ArrayList<>();
 
-        try(Txn<ByteBuffer> txn = env.txnRead()) {
+        try (Txn<ByteBuffer> txn = env.txnRead()) {
             Dbi<ByteBuffer> db = getDatabase(collection);
 
             // Get the amount of elements
@@ -291,18 +294,17 @@ public class LMDBStore implements Store {
             long startIndex = isDescending ? baseIndex - skip : baseIndex + skip;
             long endIndex = isDescending ? startIndex - take : startIndex + take;
 
-            if(isDescending) {
-                if(startIndex < 0)
+            if (isDescending) {
+                if (startIndex < 0)
                     return result; // Nothing to read
-                if(endIndex < 0) {
+                if (endIndex < 0) {
                     // Adjust take
                     take += endIndex + 1;
                 }
-            }
-            else {
-                if(startIndex >= count)
+            } else {
+                if (startIndex >= count)
                     return result; // Nothing to read
-                if(endIndex >= count) {
+                if (endIndex >= count) {
                     // Adjust take
                     take -= (endIndex - count);
                 }
@@ -334,7 +336,6 @@ public class LMDBStore implements Store {
 
         return result;
     }
-
 
 
     /**************** END ONLY USED BY API ************************/
