@@ -72,7 +72,11 @@ public class BlockStore {
      * @return int Length of longest tree in smiloChain
      */
     public int getBlockchainLength() {
-        return getLargestChain().getLength();
+        SmiloChain largetChain = getLargestChain();
+        if (largetChain == null) {
+            return 0;
+        }
+        return largetChain.getLength();
     }
 
     /**
