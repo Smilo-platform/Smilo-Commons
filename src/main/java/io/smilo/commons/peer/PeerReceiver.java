@@ -106,13 +106,20 @@ public class PeerReceiver {
     public void broadcastNewBlockRequest() {
         if (networkState.getCatchupMode()) {
             try {
-                //Sleep for a bit, wait for responses before requesting more data.
-                Thread.sleep(300);
+
                 //Broadcast request for new block(s)
-                for (int i = blockStore.getBlockchainLength(); i < networkState.getTopBlock(); i++) {
-                    LOGGER.info("Requesting block " + i + "...");
-                    peerClient.broadcast("GET_BLOCK " + i);
+                int blockNum =  blockStore.getBlockchainLength();
+                long blockGoal = networkState.getTopBlock();
+                int max_blocks = (int)Math.min(blockGoal - blockNum, 25);
+
+                for (int i = 0; i < max_blocks; ++i) {
+                    int getBlock = blockStore.getBlockchainLength() + i;
+                    LOGGER.info("Requesting block " + getBlock + "...");
+                    peerClient.broadcast("GET_BLOCK " + getBlock);
                 }
+
+                //Sleep for a bit, wait for responses before requesting more data to prevent DDos
+                Thread.sleep(500);
             } catch (InterruptedException e) {
                 //If this throws an error, something's terribly off.
                 LOGGER.error("Exception when broadcastNewBlockRequest, something's terribly off.", e);
