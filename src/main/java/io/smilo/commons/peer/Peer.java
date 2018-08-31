@@ -53,13 +53,13 @@ public class Peer implements Runnable, IPeer {
         this.initialized = false;
         this.address = socket.getInetAddress();
         this.remotePort = socket.getPort();
-        this.identifier = (identifier != "") ? identifier : socket.getInetAddress().toString();
+        this.identifier = identifier;
         setKeepAlive();
     }
 
     public Peer(String identifier, InetAddress address, int port) throws IOException {
         this(identifier, new Socket(address, port));
-        this.identifier = (identifier != "") ? identifier : address.toString()+ ":" +port;
+        this.identifier = identifier;
     }
 
     public Peer() {
@@ -71,12 +71,14 @@ public class Peer implements Runnable, IPeer {
      */
     @Override
     public void run() {
-        LOGGER.info("Got connection from " + getIdentifier() + ".");
+        String id = (identifier != "") ? identifier : socket.getInetAddress().toString();
+
+        LOGGER.info("Got connection from " + id + ".");
         peerInput = new PeerInput(socket);
         peerInput.start();
         peerOutput = new PeerOutput(socket);
         initialized = true;
-        LOGGER.info("Initialized connection " + getIdentifier());
+        LOGGER.info("Initialized connection " + id);
         peerOutput.run();
     }
 
