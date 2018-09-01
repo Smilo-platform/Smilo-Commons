@@ -64,8 +64,8 @@ public class PeerReceiver {
      * Retrieve and handle new data from peers
      */
     public void getNewData() {
-        LOGGER.trace("Look for new data from peers...");
-        LOGGER.trace("Connected with " + peerClient.getPeers().size() + " threads...");
+        LOGGER.debug("Look for new data from peers...");
+        LOGGER.debug("Connected with " + peerClient.getPeers().size() + " threads...");
 
         // copy the peer list to make sure we don't get any concurrency issues when adding new received peers
         new ArrayList<>(peerClient.getPeers()).stream().filter(p -> p.isInitialized()).forEach(peer -> {
