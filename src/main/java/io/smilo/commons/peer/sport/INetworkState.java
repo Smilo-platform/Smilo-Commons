@@ -13,7 +13,7 @@ public interface INetworkState {
 
     long getTopBlock();
 
-    void setTopBlock(int topBlock);
+    void setTopBlock(long topBlock);
 
     Set<Network> getNetworks();
 

@@ -33,7 +33,7 @@ public class DefaultPeerInitializer implements PeerInitializer {
     @Override
     public IPeer initializePeer(String identifier, InetAddress address, int port) {
         try {
-            LOGGER.info("Connecting to " + address.getHostAddress() + ":" + port);
+            LOGGER.debug("Connecting to " + address.getHostAddress() + ":" + port);
             return new Peer(identifier, address, port);
         } catch (IOException e) {
             LOGGER.error("Unable to connect to " + address.getHostAddress() + ":" + port);
