@@ -18,6 +18,7 @@ package io.smilo.commons.block;
 
 import io.smilo.commons.block.data.transaction.Transaction;
 import io.smilo.commons.ledger.LedgerManager;
+import io.smilo.commons.peer.IPeer;
 import io.smilo.commons.peer.PeerStore;
 import io.smilo.commons.peer.sport.INetworkState;
 import io.smilo.commons.pendingpool.PendingBlockDataPool;
@@ -121,7 +122,16 @@ public class SmiloChainService {
             //Block numbering starts at 0.
             if (block.getBlockNum() > largestChain.getLastBlock().getBlockNum() + 1) {
                 //Add it to the queue.
-                blockQueue.add(block);
+
+                Set<Block> list = new HashSet<>(blockQueue);
+                boolean isAdded = list.add(block);
+                if (isAdded) {
+                    blockQueue.add(block);
+                }
+                if (!isAdded) {
+                    LOGGER.error("THIS BLOCK IS ALREADY ON blockQueue, WILL IGNORE!! " + block.getBlockNum() + " with starting hash " + block.getBlockHash().substring(0, 20));
+                    return new AddBlockResult(block, AddResultType.DUPLICATE, "Block has been added to the queue");
+                }
                 /*
                  * In the future, the addBlock() method may be changed to return an int, with values representing things like block above existing heights, validation error, block not on any chains, etc.
                  * For now, the boolean indicates simply whether immediate addition of the block to some internal smiloChain was successful.
@@ -340,7 +350,8 @@ public class SmiloChainService {
             LOGGER.info("addBlockToSmiloChain, new block from network!" + " Block: " + block.getPrintableString());
             allBroadcastBlockHashes.add(block.getBlockHash());
             AddBlockResult result = addBlock(block);
-            networkState.updateCatchupMode();
+
+
             boolean isAdded = result.getType().isSuccess() && !networkState.getCatchupMode();
             if (isAdded) {
                 LOGGER.info("Added block " + block.getBlockNum() + " with hash: [" + block.getBlockHash().substring(0, 30) + "..." + block.getBlockHash().substring(block.getBlockHash().length() - 30, block.getBlockHash().length() - 1) + "]");
@@ -355,6 +366,9 @@ public class SmiloChainService {
 
                 // Check Queue
                 LOGGER.info("Processing queue");
+                tryBlockQueue();
+            } else if (result.getType() == AddResultType.QUEUED) {
+                LOGGER.debug("GOING TO PROCESS BLOCK QUEUE, SIZE: " + blockQueue.size());
                 tryBlockQueue();
             }
 
@@ -377,7 +391,7 @@ public class SmiloChainService {
      * Try to add blocks in the queue to the chain
      */
     private void tryBlockQueue() {
-        boolean addedABlock = false;
+        boolean addedABlock;
         //Some blocks in the queue may be attempted before other dependency blocks, so while we are able to add blocks, we will continue to add them.
         do {
             addedABlock = false;
@@ -397,6 +411,8 @@ public class SmiloChainService {
                 }
             }
         } while (addedABlock);
+
+        networkState.updateCatchupMode();
     }
 
     /**
@@ -435,7 +451,23 @@ public class SmiloChainService {
             }
 
             chainQueue.add(block);
-            checkBlockApprovedStatus(block.getBlockHash());
+
+            boolean isApproved = checkBlockApprovedStatus(block.getBlockHash());
+            // if block not found on chain
+            if(!isApproved && networkState.getTopBlock() < block.getBlockNum()){
+                LOGGER.error( "BLOCK NOT FOUND, WILL UPDATE topBlock AND REQUEST_NET_STATE");
+                networkState.setTopBlock(block.getBlockNum());
+                List<IPeer> ls = new ArrayList<>(peerStore.getPeers());
+                for (int i = 0; i < ls.size(); i++) {
+                    IPeer p = ls.get(i);
+                    if (p != null) {
+                        p.write("REQUEST_NET_STATE");
+                    }
+                }
+            }
+
+
+
             return new AddBlockResult(block, AddResultType.QUEUED, "Block added to chain queue");
         }
     }
@@ -463,7 +495,7 @@ public class SmiloChainService {
      *
      * @param blockHash the blockhash to check
      */
-    private void checkBlockApprovedStatus(String blockHash) {
+    private boolean checkBlockApprovedStatus(String blockHash) {
         Set<String> identifiers = approvedBlocks.getOrDefault(blockHash, new HashSet<>());
         int peerSize = peerStore.getPeers().size();
 
@@ -471,12 +503,16 @@ public class SmiloChainService {
             LOGGER.info("66 Percent approved block: " + blockHash);
             Block block = chainQueue.stream().filter(b -> b.getBlockHash().equals(blockHash)).findFirst().orElse(null);
             if (block == null) {
-                LOGGER.warn("Block not found in chain queue");
+                LOGGER.error("Block not found in chain queue");
+                return false;
             } else {
                 addBlockToSmiloChain(block);
                 approvedBlocks.remove(blockHash);
+                return true;
             }
         }
+
+        return true;
     }
 
 }

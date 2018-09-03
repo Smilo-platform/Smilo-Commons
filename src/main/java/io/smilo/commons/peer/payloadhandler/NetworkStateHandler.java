@@ -26,6 +26,8 @@ import java.util.List;
 public class NetworkStateHandler implements PayloadHandler {
 
     private final INetworkState networkState;
+    private static final org.apache.log4j.Logger LOGGER = org.apache.log4j.Logger.getLogger(NetworkStateHandler.class);
+
 
     public NetworkStateHandler(INetworkState networkState) {
         this.networkState = networkState;
@@ -33,7 +35,13 @@ public class NetworkStateHandler implements PayloadHandler {
 
     @Override
     public void handlePeerPayload(List<String> parts, IPeer peer) {
-        networkState.setTopBlock(Integer.parseInt(parts.get(1)));
+        Integer topBlock = Integer.parseInt(parts.get(1));
+        LOGGER.debug("Going to update topBlock, topBlock from network is: " + topBlock + ", Actual topBlock is: " + networkState.getTopBlock());
+        if (networkState.getTopBlock() < topBlock) {
+            networkState.setTopBlock(topBlock);
+        }else {
+            LOGGER.debug("topBlock that we got from the network is lower than our own topBlock, will ignore!");
+        }
     }
 
     @Override

@@ -92,7 +92,7 @@ public class SmiloChainServiceTest extends AbstractSpringTest {
         assertEquals(AddResultType.QUEUED, result.getType());
         
         AddBlockResult r = smiloChainService.addBlockToSmiloChain(block1);
-        assertTrue(blockStore.getLastBlock().getBlockHash().equals(block2.getBlockHash()));
+        assertFalse(blockStore.getLastBlock().getBlockHash().equals(block2.getBlockHash()));
     }
     
     @Test

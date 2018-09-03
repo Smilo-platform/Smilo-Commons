@@ -18,6 +18,8 @@ package io.smilo.commons.block;
 
 
 import io.smilo.commons.block.data.transaction.Transaction;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -197,27 +199,28 @@ public class Block extends Content {
     }
 
     @Override
-    public int hashCode() {
-        int hash = 3;
-        hash = 67 * hash + Objects.hashCode(this.blockHash);
-        return hash;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Block block = (Block) o;
+
+        return new EqualsBuilder()
+                .append(blockNum, block.blockNum)
+                .append(previousBlockHash, block.previousBlockHash)
+                .append(blockHash, block.blockHash)
+                .isEquals();
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final Block other = (Block) obj;
-        return Objects.equals(this.blockHash, other.blockHash);
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37)
+                .append(blockNum)
+                .append(previousBlockHash)
+                .append(blockHash)
+                .toHashCode();
     }
-
 
     public String getRawBlockDataWithHash() {
         return getRawBlockData() + ",{" + blockHash + "}";
