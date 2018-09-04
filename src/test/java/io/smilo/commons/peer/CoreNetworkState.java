@@ -83,7 +83,7 @@ public class CoreNetworkState implements INetworkState {
         return topBlock;
     }
 
-    public void setTopBlock(int topBlock) {
+    public void setTopBlock(long topBlock) {
         this.topBlock = topBlock;
         updateCatchupMode();
     }
