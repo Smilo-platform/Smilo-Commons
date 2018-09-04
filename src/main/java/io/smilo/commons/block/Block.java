@@ -35,7 +35,7 @@ public class Block extends Content {
     private String previousBlockHash;
     private String redeemAddress;
     private String ledgerHash;
-    private List<Transaction> transactions;
+    private List<Transaction> transactions = new ArrayList<>();
     private String blockHash;
     private String nodeSignature;
     private long nodeSignatureIndex;
