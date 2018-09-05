@@ -91,7 +91,6 @@ public interface Store {
     void addToArray(String collection, String key, ByteBuffer value);
     List<byte[]> getArray(String collection, String key, long skip, long take, boolean isDescending);
     List<byte[]> getAllAPI(String collection, long skip, long take, boolean isDescending);
-    byte[] getAPI(String collection, ByteBuffer key);
 
     /**************** END ONLY USED BY API ************************/
 

@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package io.smilo.commons.peer.sport;
+package io.smilo.commons.peer;
 
 import io.smilo.commons.block.BlockStore;
 import io.smilo.commons.ledger.AddressManager;
-import io.smilo.commons.peer.PeerSender;
 import io.smilo.commons.peer.network.Network;
 import io.smilo.commons.peer.network.NetworkStatus;
 import io.smilo.commons.peer.payloadhandler.PayloadType;
-import org.apache.log4j.Logger;
+import io.smilo.commons.peer.sport.INetworkState;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Core implementation of networkState
+ */
 @Component
-public class NetworkState {
-
-    private final static Logger LOGGER = Logger.getLogger(NetworkState.class);
+public class CoreNetworkState implements INetworkState {
 
     private boolean catchupMode = false;
     private long topBlock = 0;
@@ -42,7 +42,7 @@ public class NetworkState {
     private final PeerSender peerSender;
     private final AddressManager addressManager;
 
-    public NetworkState(BlockStore blockStore, PeerSender peerSender, AddressManager addressManager) {
+    public CoreNetworkState(BlockStore blockStore, PeerSender peerSender, AddressManager addressManager) {
         this.blockStore = blockStore;
         this.peerSender = peerSender;
         this.addressManager = addressManager;
@@ -59,12 +59,8 @@ public class NetworkState {
          *
          */
         if (topBlock > blockStore.getBlockchainLength()) {
-            LOGGER.info("Updating CatchupMode currentChainHeight: " + blockStore.getBlockchainLength() + ", topBlock: " + topBlock);
             catchupMode = true;
         } else {
-            if (catchupMode) {
-                LOGGER.info("Caught up with network."); //Probably won't be seen with block-add spam.
-            }
             catchupMode = false;
         }
     }
@@ -113,7 +109,6 @@ public class NetworkState {
             network.getUnconfirmedPeerIdentifiers().add(addressManager.getDefaultAddress());
         }
 
-        LOGGER.info("Network with ID " + network.getIdentifier() + " added!");
     }
 
     public void removeNetwork(Network network) {

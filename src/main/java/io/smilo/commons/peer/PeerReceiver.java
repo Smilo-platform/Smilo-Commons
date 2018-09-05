@@ -16,10 +16,9 @@
 package io.smilo.commons.peer;
 
 import io.smilo.commons.block.BlockStore;
-import io.smilo.commons.peer.network.NetworkUpdater;
 import io.smilo.commons.peer.payloadhandler.PayloadHandlerProvider;
 import io.smilo.commons.peer.payloadhandler.PayloadType;
-import io.smilo.commons.peer.sport.NetworkState;
+import io.smilo.commons.peer.sport.INetworkState;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,18 +39,18 @@ public class PeerReceiver {
     private final BlockStore blockStore;
     private final PeerClient peerClient;
     private final PayloadHandlerProvider payloadHandlerProvider;
-    private final NetworkState networkState;
+    private final INetworkState networkState;
 
     private final Long pingInterval;
     private final int maxConnectionAttempts;
-    private final NetworkUpdater networkUpdater;
+    private final INetworkUpdater networkUpdater;
 
     public PeerReceiver(BlockStore blockStore,
                         PeerClient peerClient,
                         PayloadHandlerProvider payloadHandlerProvider,
-                        NetworkState networkState,
+                        INetworkState networkState,
                         @Value("${PING_INTERVAL:4320000}") Long pingInterval,
-                        @Value("${MAX_CONNECTION_ATTEMPTS:7}") int maxConnectionAttempts, NetworkUpdater networkUpdater) {
+                        @Value("${MAX_CONNECTION_ATTEMPTS:7}") int maxConnectionAttempts, INetworkUpdater networkUpdater) {
         this.blockStore = blockStore;
         this.peerClient = peerClient;
         this.payloadHandlerProvider = payloadHandlerProvider;
@@ -94,7 +93,7 @@ public class PeerReceiver {
                         LOGGER.error("Incomplete message... " + data);
                         peer.write("ERROR the message was not complete!");
                     } catch (Exception e) {
-                        LOGGER.error("No idea what happened here...", e);
+                        LOGGER.error("No idea what happened here... MSG: " + data, e);
                     }
                 }
             });

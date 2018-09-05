@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class PongHandler implements PayloadHandler {
 
     private static final Logger LOGGER = Logger.getLogger(PongHandler.class);

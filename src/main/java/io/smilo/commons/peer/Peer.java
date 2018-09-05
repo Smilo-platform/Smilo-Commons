@@ -71,12 +71,14 @@ public class Peer implements Runnable, IPeer {
      */
     @Override
     public void run() {
-        LOGGER.info("Got connection from " + getIdentifier() + ".");
+        String id = (identifier != "") ? identifier : socket.getInetAddress().toString();
+
+        LOGGER.info("Got connection from " + id + ".");
         peerInput = new PeerInput(socket);
         peerInput.start();
         peerOutput = new PeerOutput(socket);
         initialized = true;
-        LOGGER.info("Initialized connection " + getIdentifier());
+        LOGGER.info("Initialized connection " + id);
         peerOutput.run();
     }
 

@@ -14,27 +14,14 @@
  * limitations under the License.
  */
 
-package io.smilo.commons.peer.payloadhandler;
+package io.smilo.commons.peer;
 
-import io.smilo.commons.peer.IPeer;
-import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
-public class PingHandler implements PayloadHandler {
+public class CoreNetworkUpdater implements INetworkUpdater {
 
-    private static final Logger LOGGER = Logger.getLogger(PingHandler.class);
+    public void updateNetworks() {
 
-    @Override
-    public void handlePeerPayload(List<String> parts, IPeer peer) {
-        LOGGER.debug("Sending pong to " + peer.getIdentifier());
-        peer.write(PayloadType.PONG.name());
-    }
-
-    @Override
-    public PayloadType supports() {
-        return PayloadType.PING;
     }
 }

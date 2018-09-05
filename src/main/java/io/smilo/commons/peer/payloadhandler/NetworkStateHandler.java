@@ -17,16 +17,17 @@
 package io.smilo.commons.peer.payloadhandler;
 
 import io.smilo.commons.peer.IPeer;
-import io.smilo.commons.peer.sport.NetworkState;
+import io.smilo.commons.peer.sport.INetworkState;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class NetworkStateHandler implements PayloadHandler {
 
-    private final NetworkState networkState;
+    private final INetworkState networkState;
 
-    public NetworkStateHandler(NetworkState networkState) {
+    public NetworkStateHandler(INetworkState networkState) {
         this.networkState = networkState;
     }
 

@@ -79,8 +79,13 @@ public class LedgerStore {
         Optional<Account> ret = Optional.empty();
         if(address != null) {
             try {
-                byte[] acc = store.get(COLLECTION_NAME, address.getBytes(StandardCharsets.UTF_8));
-                ret = Optional.of(accountParser.deserialize(acc));
+                byte[] bytesAcc = store.get(COLLECTION_NAME, address.getBytes(StandardCharsets.UTF_8));
+                if(bytesAcc == null || bytesAcc.length < 1){
+                    LOGGER.debug("ADDRESS "+ address +" UNKNOWN BALANCE $0 ADDED.");
+                    return ret;
+                }
+                Account acc = accountParser.deserialize(bytesAcc);
+                ret = Optional.of(acc);
             } catch (NullPointerException | IndexOutOfBoundsException ex) {
                 LOGGER.debug("ADDRESS "+ address +" UNKNOWN BALANCE $0 ADDED.");
             }

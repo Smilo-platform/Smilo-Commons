@@ -21,18 +21,19 @@ import io.smilo.commons.block.Block;
 import io.smilo.commons.block.BlockParser;
 import io.smilo.commons.block.SmiloChainService;
 import io.smilo.commons.peer.IPeer;
-import io.smilo.commons.peer.sport.NetworkState;
+import io.smilo.commons.peer.sport.INetworkState;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+@Component
 public class BlockHandler implements PayloadHandler {
 
     private SmiloChainService smiloChainService;
     private BlockParser blockParser;
-    private NetworkState networkState;
+    private INetworkState networkState;
 
-    public BlockHandler(SmiloChainService smiloChainService, BlockParser blockParser, NetworkState networkState) {
+    public BlockHandler(SmiloChainService smiloChainService, BlockParser blockParser, INetworkState networkState) {
         this.smiloChainService = smiloChainService;
         this.blockParser = blockParser;
         this.networkState = networkState;
