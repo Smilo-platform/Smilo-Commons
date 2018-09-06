@@ -17,6 +17,7 @@ package io.smilo.commons;
 
 import org.apache.commons.codec.binary.Base32;
 import org.apache.log4j.Logger;
+import org.ethereum.crypto.cryptohash.Keccak256;
 
 import javax.xml.bind.DatatypeConverter;
 import java.math.BigInteger;
@@ -29,6 +30,12 @@ import static org.springframework.util.StringUtils.isEmpty;
 public class HashUtility {
 
     private static final Logger LOGGER = Logger.getLogger(HashUtility.class);
+
+    public static byte[] keccak256(byte[] msg) {
+        Keccak256 digest =  new Keccak256();
+        digest.update(msg);
+        return digest.digest();
+    }
 
     public static String digestSHA256ToHEX(String data) {
         return toHEXString(digestSHA256(data));

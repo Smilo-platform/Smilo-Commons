@@ -17,11 +17,9 @@
 package io.smilo.commons.ledger;
 
 
-import io.smilo.commons.HashHelper;
+import io.smilo.commons.HashUtility;
 import org.apache.log4j.Logger;
 import org.spongycastle.util.encoders.Hex;
-
-import java.nio.charset.StandardCharsets;
 
 public class AddressHelper {
 
@@ -33,7 +31,7 @@ public class AddressHelper {
         hexAddress.append(Hex.toHexString(shaValue).toLowerCase());
         hexAddress.setLength(40);
         byte[] test = hexAddress.toString().toLowerCase().getBytes();
-        byte[] shaOfHex = HashHelper.keccak256(hexAddress.toString().toLowerCase().getBytes());
+        byte[] shaOfHex = HashUtility.keccak256(hexAddress.toString().toLowerCase().getBytes());
         for (int i = 0; i < 20; i++) {
 //            if ((shaOfHex[shaOfHex.length-1-i] & 0x08) > 0) hexAddress.setCharAt(2*i, Character.toUpperCase(hexAddress.charAt(2*i)));
 //            if ((shaOfHex[shaOfHex.length-1-i] & 0x80) > 0) hexAddress.setCharAt(2*i+1, Character.toUpperCase(hexAddress.charAt(2*i+1)));

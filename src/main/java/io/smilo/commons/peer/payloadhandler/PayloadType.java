@@ -18,6 +18,8 @@ package io.smilo.commons.peer.payloadhandler;
 
 public enum PayloadType {
 
+    REQUEST_DISCOVER_NETWORKS,
+    DISCOVER_NETWORKS,
     READY_TO_LINK,
     NETWORK_LIST,
     LINK_NETWORK,

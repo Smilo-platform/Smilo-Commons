@@ -24,10 +24,14 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.lang.Thread.sleep;
 import static org.springframework.util.ObjectUtils.isEmpty;
@@ -216,6 +220,11 @@ public class PeerClient {
         return peers.get(random.nextInt(peers.size()));
     }
 
+    public IPeer getRandomPeerNotPeer(IPeer peer) {
+        List<IPeer> peers = peerStore.getPeers().stream().filter(p -> !p.equals(peer)).collect(Collectors.toList());
+        return peers.get(random.nextInt(peers.size()));
+    }
+
     public Set<IPeer> getPeers() {
         Set<IPeer> peers = new HashSet<>(peerStore.getPeers());
         peers.addAll(pendingPeers);
@@ -250,5 +259,51 @@ public class PeerClient {
 
     public IPeer getPeerByIdentifier(String identifier) {
         return peerStore.getPeer(identifier);
+    }
+
+    public String getExternalIP() {
+        String externalIp = null;
+        try {
+            URL whatismyip = new URL("http://checkip.amazonaws.com");
+            BufferedReader in = new BufferedReader(new InputStreamReader(
+                    whatismyip.openStream()));
+
+            externalIp = in.readLine();
+        } catch(Exception e1) {
+            LOGGER.warn("Unable to retrieve external IP from checkip.amazonaws.com", e1);
+            LOGGER.info("Attempt 2 to retrieve external IP");
+            try {
+                URL whatismyip = new URL("http://icanhazip.com");
+                BufferedReader in = new BufferedReader(new InputStreamReader(
+                        whatismyip.openStream()));
+
+                externalIp = in.readLine();
+            } catch(Exception e2) {
+                LOGGER.warn("Unable to retrieve external IP from icanhazip.com", e2);
+                LOGGER.info("Attempt 3 to retrieve external IP");
+
+                try {
+                    URL whatismyip = new URL("http://ifconfig.me/ip");
+                    BufferedReader in = new BufferedReader(new InputStreamReader(
+                            whatismyip.openStream()));
+
+                    externalIp = in.readLine();
+                } catch(Exception e3) {
+                    LOGGER.warn("Unable to retrieve external IP from ifconfig.me/ip", e3);
+                    LOGGER.info("Attempt 4 to retrieve external IP");
+
+                    try {
+                        URL whatismyip = new URL("http://wtfismyip.com/text");
+                        BufferedReader in = new BufferedReader(new InputStreamReader(
+                                whatismyip.openStream()));
+
+                        externalIp = in.readLine();
+                    } catch(Exception e4) {
+                        LOGGER.warn("Unable to retrieve external IP from wtfismyip.com/text", e4);
+                    }
+                }
+            }
+        }
+        return externalIp;
     }
 }
