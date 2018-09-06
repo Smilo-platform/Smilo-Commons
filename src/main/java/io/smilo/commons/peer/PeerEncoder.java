@@ -56,10 +56,13 @@ public class PeerEncoder {
 
         try {
             int peerPort = ByteUtil.byteArrayToInt(portBytes);
-            InetAddress address = InetAddress.getByAddress(ipBytes);
 
             String peerIdentifier = peerIdRaw == null ? "" : new String(peerIdRaw, Charsets.UTF_8);
+            String host = ipBytes == null ? "" : new String(ipBytes, Charsets.UTF_8);
+            InetAddress address = InetAddress.getByName(host);
             IPeer peer = peerInitializer.initializePeer(peerIdentifier, address, peerPort);
+            peer.setConnectPort(peerPort);
+            peer.setConnectHost(host);
 
             if (peer != null) {
                 peer.setCapabilities(capabilities);
@@ -79,8 +82,8 @@ public class PeerEncoder {
      * @return serialized byte array
      */
     public byte[] encode(IPeer peer) {
-        byte[] ip = RLP.encodeElement(peer.getAddress().getAddress());
-        byte[] port = RLP.encodeInt(peer.getRemotePort());
+        byte[] ip = RLP.encodeElement(peer.getConnectHost().getBytes(StandardCharsets.UTF_8));
+        byte[] port = RLP.encodeInt(peer.getConnectPort());
         byte[] peerId = RLP.encodeElement(peer.getIdentifier().getBytes(StandardCharsets.UTF_8));
 
         byte[] capabilities = encodeCapabilties(peer.getCapabilities());

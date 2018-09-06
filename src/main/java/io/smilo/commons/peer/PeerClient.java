@@ -44,6 +44,9 @@ public class PeerClient {
 
     private final Set<String> nodes;
 
+    private String hostname;
+    private int port;
+
     private final int listenPort;
     private boolean shouldRun = true;
 
@@ -143,6 +146,7 @@ public class PeerClient {
      * @param peer Peer to connect to
      */
     public void connectToPeer(IPeer peer) {
+        LOGGER.info("Connecting to " + peer.getConnectHost());
         try {
             taskExecutor.execute(() -> {
                 peer.run();
@@ -222,6 +226,10 @@ public class PeerClient {
 
     public IPeer getRandomPeerNotPeer(IPeer peer) {
         List<IPeer> peers = peerStore.getPeers().stream().filter(p -> !p.equals(peer)).collect(Collectors.toList());
+        if (peers.isEmpty()) {
+            LOGGER.info("No peers found!");
+            return null;
+        }
         return peers.get(random.nextInt(peers.size()));
     }
 
@@ -305,5 +313,21 @@ public class PeerClient {
             }
         }
         return externalIp;
+    }
+
+    public String getHostname() {
+        return hostname;
+    }
+
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }

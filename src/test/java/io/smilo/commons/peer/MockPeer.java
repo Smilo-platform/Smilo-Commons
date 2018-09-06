@@ -20,6 +20,9 @@ public class MockPeer implements IPeer {
     private Long lastPing;
     private int connectionAttempts;
 
+    private String connectHost;
+    private int connectPort;
+
     public MockPeer(String identifier, InetAddress address, int port)  {
         this.writtenData = new ArrayList<>();
         this.setInitialized(true);
@@ -116,6 +119,26 @@ public class MockPeer implements IPeer {
     @Override
     public void setCapabilities(List<Capability> capabilities) {
         this.capabilities = capabilities;
+    }
+
+    @Override
+    public String getConnectHost() {
+        return connectHost;
+    }
+
+    @Override
+    public void setConnectHost(String connectHost) {
+        this.connectHost = connectHost;
+    }
+
+    @Override
+    public int getConnectPort() {
+        return connectPort;
+    }
+
+    @Override
+    public void setConnectPort(int connectPort) {
+        this.connectPort = connectPort;
     }
 
     @Override

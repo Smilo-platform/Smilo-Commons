@@ -18,6 +18,7 @@ package io.smilo.commons.peer.payloadhandler;
 import io.smilo.commons.ledger.AddressManager;
 import io.smilo.commons.peer.Capability;
 import io.smilo.commons.peer.IPeer;
+import io.smilo.commons.peer.PeerClient;
 import io.smilo.commons.peer.PeerEncoder;
 import org.apache.log4j.Logger;
 import org.spongycastle.util.encoders.Hex;
@@ -33,17 +34,24 @@ public class RequestIdentifierHandler implements PayloadHandler {
 
     private final AddressManager addressManager;
     private final PeerEncoder peerEncoder;
+    private final PeerClient peerClient;
 
-    public RequestIdentifierHandler(AddressManager addressManager, PeerEncoder peerEncoder) {
+    public RequestIdentifierHandler(AddressManager addressManager, PeerEncoder peerEncoder, PeerClient peerClient) {
         this.addressManager = addressManager;
         this.peerEncoder = peerEncoder;
+        this.peerClient = peerClient;
     }
 
     @Override
     public void handlePeerPayload(List<String> parts, IPeer peer) {
+
         byte[] capabilities = peerEncoder.encodeCapabilties(RequestIdentifierHandler.CAPABILITIES);
 
-        peer.write(PayloadType.RESPOND_IDENTIFIER.name() + " " + addressManager.getDefaultAddress() + " " + Hex.toHexString(capabilities));
+        String payload = PayloadType.RESPOND_IDENTIFIER.name() + " " + addressManager.getDefaultAddress() + " " + peerClient.getHostname() + " " + peerClient.getPort() + " " + Hex.toHexString(capabilities);
+
+        LOGGER.info("Responding with identity: " + payload);
+
+        peer.write(payload);
     }
 
     // List of all capabilities supported by this client

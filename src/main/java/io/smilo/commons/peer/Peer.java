@@ -33,6 +33,10 @@ public class Peer implements Runnable, IPeer {
     private final static Logger LOGGER = Logger.getLogger(Peer.class);
     private String identifier;
     private Socket socket;
+
+    private String connectHost;
+    private int connectPort;
+
     private InetAddress address;
     private int remotePort;
     private PeerInput peerInput;
@@ -166,6 +170,26 @@ public class Peer implements Runnable, IPeer {
     @Override
     public void addConnectionAttempt() {
         this.connectionAttempts++;
+    }
+
+    @Override
+    public String getConnectHost() {
+        return connectHost;
+    }
+
+    @Override
+    public void setConnectHost(String connectHost) {
+        this.connectHost = connectHost;
+    }
+
+    @Override
+    public int getConnectPort() {
+        return connectPort;
+    }
+
+    @Override
+    public void setConnectPort(int connectPort) {
+        this.connectPort = connectPort;
     }
 
     private void setKeepAlive(){

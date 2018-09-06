@@ -20,11 +20,13 @@ public class PeerBuilder {
     private MerkleTreeGenerator treeGen;
 
     public PeerBuildCommand blank() {
-        return new PeerBuildCommand().blank("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR","localhost", 80);
+        return new PeerBuildCommand().blank("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR","localhost", 80)
+                .withConnectHost("localhost").withConnectPort(80);
     }
 
     public PeerBuildCommand blank(String hostname, int port) {
-        return new PeerBuildCommand().blank("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR", hostname, port);
+        return new PeerBuildCommand().blank("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR", hostname, port)
+                .withConnectHost(hostname).withConnectPort(port);
     }
 
     public PeerBuildCommand peer_ready() {
@@ -91,6 +93,16 @@ public class PeerBuilder {
 
         public PeerBuildCommand withCapability(Capability capability) {
             peer.getCapabilities().add(capability);
+            return this;
+        }
+
+        public PeerBuildCommand withConnectHost(String host) {
+            peer.setConnectHost(host);
+            return this;
+        }
+
+        public PeerBuildCommand withConnectPort(int port) {
+            peer.setConnectPort(port);
             return this;
         }
 

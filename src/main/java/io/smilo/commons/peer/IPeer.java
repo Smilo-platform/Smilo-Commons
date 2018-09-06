@@ -60,4 +60,12 @@ public interface IPeer {
     List<Capability> getCapabilities();
 
     void setCapabilities(List<Capability> capabilities);
+
+    String getConnectHost();
+
+    void setConnectHost(String connectHost);
+
+    int getConnectPort();
+
+    void setConnectPort(int connectPort);
 }
