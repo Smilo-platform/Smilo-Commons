@@ -36,7 +36,7 @@ public class AddressHelper {
         return hexAddress.toString();
     }
 
-    public boolean checkAddress(String address) {
+    public static boolean checkAddress(String address) {
         StringBuffer hexAddress = new StringBuffer();
         hexAddress.append(address.toLowerCase());
         hexAddress.setLength(40);

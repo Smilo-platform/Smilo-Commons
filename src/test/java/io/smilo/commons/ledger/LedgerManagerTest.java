@@ -49,7 +49,7 @@ public class LedgerManagerTest extends AbstractSpringTest {
     public void testGetLedgerHash() {
         accountBuilder.elkan().save();
         accountBuilder.kelly().save();
-        assertEquals("D099D9E7A871F645D9C3FB342F1FF84EABDC334AA67AD34F98EF27F2D1BB4241", ledgerManager.getLedgerHash());
+        assertEquals("79F5374636B5BA5CADBBF0BEB2144A2F96C7F4248A6D5835DA3BBE896FFF1E63", ledgerManager.getLedgerHash());
     }
     
     @Test

@@ -169,9 +169,9 @@ public class AddressUtility {
         //Final hash, done differently for formatting of address (base16, set length of 16 characters for the top of the Merkle Tree)
 
         if (position % 2 == 0) { //Even; rollingHash goes first
-            rollingHash = AddressHelper.formatAddress(AddressHelper.getType(merkleAuthPathComponents.length), HashHelper.sha256((rollingHash + merkleAuthPathComponents[merkleAuthPathComponents.length - 1]).getBytes()));
+            rollingHash = AddressHelper.formatAddress(AddressHelper.getType(merkleAuthPathComponents.length+1), HashHelper.sha256((rollingHash + merkleAuthPathComponents[merkleAuthPathComponents.length - 1]).getBytes()));
         } else { //Odd; path component should go first
-            rollingHash = AddressHelper.formatAddress(AddressHelper.getType(merkleAuthPathComponents.length), HashHelper.sha256((merkleAuthPathComponents[merkleAuthPathComponents.length - 1] + rollingHash).getBytes()));
+            rollingHash = AddressHelper.formatAddress(AddressHelper.getType(merkleAuthPathComponents.length+1), HashHelper.sha256((merkleAuthPathComponents[merkleAuthPathComponents.length - 1] + rollingHash).getBytes()));
         }
 
         if (address.toUpperCase().equals(rollingHash.toUpperCase())) { //Compare address and rolling hash
@@ -343,27 +343,27 @@ public class AddressUtility {
      */
     public boolean isAddressFormattedCorrectly(String address) {
         try {
-            String prefix = address.substring(0, 2); //Prefix is 2 characters long
-            if (!prefix.equals("S1") && !prefix.equals("S2") && !prefix.equals("S3") && !prefix.equals("S4") && !prefix.equals("S5")) {
-                return false;
-            }
-            LOGGER.trace("Address has correct prefix");
-            String treeRoot = address.substring(2, 34); //32 characters long. Should be all-caps Base32
-            String characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; //Normal Base32 character set. All upper case! Omission of 1 is normal. :)
-            for (int i = 0; i < treeRoot.length(); i++) {
-                if (!characterSet.contains(treeRoot.charAt(i) + "")) {
-                    LOGGER.error("Address not valid!");
-                    return false;
-                }
-            }
-            LOGGER.trace("Address has correct characterset");
-            String givenEnding = address.substring(34); //Characters 34 to 37 should be all that's left. Remember we start counting at 0.
-            String correctEnding = HashUtility.digestSHA256ToBase32(prefix + treeRoot).substring(0, 4); //First four characters of Base32-formatted SHA256 of treeRoot
-            if (!correctEnding.equals(givenEnding)) {
-                LOGGER.debug("Address has incorrect ending, should be " + correctEnding + " instead of " + givenEnding);
-                return false;
-            }
-            return true; //We didn't return false for a failure, it must be valid!
+//            String prefix = address.substring(0, 2); //Prefix is 2 characters long
+//            if (!prefix.equals("S1") && !prefix.equals("S2") && !prefix.equals("S3") && !prefix.equals("S4") && !prefix.equals("S5")) {
+//                return false;
+//            }
+//            LOGGER.trace("Address has correct prefix");
+//            String treeRoot = address.substring(2, 34); //32 characters long. Should be all-caps Base32
+//            String characterSet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"; //Normal Base32 character set. All upper case! Omission of 1 is normal. :)
+//            for (int i = 0; i < treeRoot.length(); i++) {
+//                if (!characterSet.contains(treeRoot.charAt(i) + "")) {
+//                    LOGGER.error("Address not valid!");
+//                    return false;
+//                }
+//            }
+//            LOGGER.trace("Address has correct characterset");
+//            String givenEnding = address.substring(34); //Characters 34 to 37 should be all that's left. Remember we start counting at 0.
+//            String correctEnding = HashUtility.digestSHA256ToBase32(prefix + treeRoot).substring(0, 4); //First four characters of Base32-formatted SHA256 of treeRoot
+//            if (!correctEnding.equals(givenEnding)) {
+//                LOGGER.debug("Address has incorrect ending, should be " + correctEnding + " instead of " + givenEnding);
+//                return false;
+//            }
+            return AddressHelper.checkAddress(address);
         } catch (Exception e) { //Not printing exceptions or logging them on purpose. Any time an address too short is passed in, this will snag it.
             return false;
         }

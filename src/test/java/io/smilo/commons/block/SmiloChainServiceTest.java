@@ -20,6 +20,7 @@ import io.smilo.commons.AbstractSpringTest;
 import io.smilo.commons.StableTests;
 import io.smilo.commons.block.data.transaction.Transaction;
 import io.smilo.commons.block.data.transaction.TransactionBuilder;
+import io.smilo.commons.ledger.AccountBuilder;
 import io.smilo.commons.ledger.AddressManager;
 import org.junit.After;
 import org.junit.Assert;
@@ -174,8 +175,8 @@ public class SmiloChainServiceTest extends AbstractSpringTest {
         assertEquals(2, transactions.size());
         
         // TODO: Check for kelly().getAddress() and elkan.getAddress() instead of hardcoded values once builders are setup correctly
-        assertTrue(transactions.stream().anyMatch(t -> t.contains("S1HY2JKBM44VJWCBZROTMOM5B3BYZWD7FVDVFS:100"))); // 1 from kelly to robert
-        assertTrue(transactions.stream().anyMatch(t -> t.contains("S17LXTYN7HC4VHVTYZDENSTZOAD47HKV5FBEHR:1"))); // 100 from elkan to kelly
+        assertTrue(transactions.stream().anyMatch(t -> t.contains(AccountBuilder.KELLY + ":100"))); // 1 from kelly to robert
+        assertTrue(transactions.stream().anyMatch(t -> t.contains(AccountBuilder.ROBERT + ":1"))); // 100 from elkan to kelly
     }
 
     @Test

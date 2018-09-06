@@ -19,6 +19,7 @@ package io.smilo.commons.block;
 import io.smilo.commons.AbstractSpringTest;
 import io.smilo.commons.block.genesis.GenesisLoader;
 import io.smilo.commons.db.Store;
+import io.smilo.commons.ledger.AccountBuilder;
 import io.smilo.commons.ledger.LedgerManager;
 import io.smilo.commons.ledger.LedgerStore;
 import org.junit.Before;
@@ -90,7 +91,7 @@ public class GenesisTest extends AbstractSpringTest {
     @Test
     public void testGenesisBalance() {
         genesisLoader.loadGenesis();
-        assertEquals(ledgerManager.getAddressBalance("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR"),BigInteger.valueOf(200000000L));
+        assertEquals(ledgerManager.getAddressBalance(AccountBuilder.ELKAN),BigInteger.valueOf(200000000L));
     }
 
 }
