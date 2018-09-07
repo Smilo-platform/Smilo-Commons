@@ -104,7 +104,11 @@ public class Peer implements Runnable, IPeer {
 
     @Override
     public void write(String string) {
-       peerOutput.write(string);
+        if (peerOutput == null) {
+            LOGGER.error("Trying to write to peerOutput, but its null ... " + string);
+            return;
+        }
+        peerOutput.write(string);
     }
 
     @Override
@@ -168,7 +172,7 @@ public class Peer implements Runnable, IPeer {
         this.connectionAttempts++;
     }
 
-    private void setKeepAlive(){
+    private void setKeepAlive() {
         try {
             this.socket.setKeepAlive(true);
         } catch (SocketException e) {

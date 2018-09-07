@@ -31,31 +31,30 @@ import java.util.*;
  * object owned by SmiloChainService was for purposes of simplicity--there's only one SmiloChainService, and only one LedgerManager. The SmiloChainService has fork management integrated, and should be
  * able to appropriately handle any unexpected circumstances. Fork management is one of the major things I'm watching for during 0.0.1a1. If you want to try to fork the network, please do. I'm sure
  * there are ways.
- *
+ * <p>
  * As the SmiloChainService has the most up-to-date information about smiloChain data, it makes perfect sense for the ledger, which is based purely on the smiloChain, to be managed by the
  * SmiloChainService object. Initial plans were to have separate SmiloChainService objects for each fork in a chain but the overhead of cloning SmiloChainServices seemed unwarranted. Significant
  * optimization still needs to be done on the fork management--climbing all the way down the shorter chain and back up the longer chain is NOT a permanant solution, and I hope to have respectable fork
  * management overhead by 1.0.0.
- *
+ * <p>
  * Additionally, there is no need to store identical blocks between multiple forks. The overhead of a fork suddenly requiring double the smiloChain storage is unacceptable. It works, I think. But
  * unacceptable for production code, so that'll certainly change, hopefully by 1.0.0, depending on my schedule.
- *
+ * <p>
  * As blocks are added to the smiloChain, the ledger is updated. While working beautifully in small-scale testing, I'm sure the signature count synchronization between signed transactions and blocks
  * will trip up at some point, and send the SmiloChainService into either a loop of dispair, or an irrecoverable error. Either is equally frightening.
- *
+ * <p>
  * Fault tolerance with desynchronization between ledger and smiloChain for signature accounts will be a 0.0.1a6/7 feature. I've gotta think long and hard about the best approaches that don't
  * compromise security in the name of fault-tolerance, while remaining usable, reliable, and fast.
- *
+ * <p>
  * You'll notice a loop which appears to retry transactions up to 10,000 times. Transactions must be executed in order--two transactions from the same address need to go in order of signature index,
  * otherwise the storage space required to maintain all used signature indexes would be astronomical.
- *
+ * <p>
  * As a caveat to the Merkle Tree signature scheme, Lamport Key reuse creates the potential for double-spend attacks, so once a Lamport Keypair is used, the network rejects all future signatures from
  * that keypair. Important to keep this in mind--
- *
+ * <p>
  * A SmiloChainService represents an entire chain of blocks. Only one is created in the entire execution of the program. All blocks will be added individually and in-order.
- *
+ * <p>
  * This SmiloChainService will handle all forks--it keeps a record of forks for ten blocks. After a fork falls more than 10 blocks behind, it is deleted.
- *
  */
 @Component
 public class SmiloChainService {
@@ -67,7 +66,7 @@ public class SmiloChainService {
     private Map<String, Set<String>> approvedBlocks = new HashMap<>();
     private final Set<Block> chainQueue;
     private final List<Block> blockQueue;
-    
+
     // TODO: cleanup allBroadcastBlockHashes every now and then
     private final Set<String> allBroadcastBlockHashes = new HashSet<>();
 
@@ -99,7 +98,6 @@ public class SmiloChainService {
      * automatically placed onto the correct fork, or a new fork will be made if necessary.
      *
      * @param block Block to add to the smiloChain
-     *
      * @return boolean Whether adding the block was unsuccessful. Most common source of returning false is a block that doesn't verify.
      */
     private AddBlockResult addBlock(Block block) {
@@ -107,6 +105,11 @@ public class SmiloChainService {
         try {
             //A bit of cleanup--remove chains that are more than 10 blocks shorter than the largest chain.
             SmiloChain largestChain = blockStore.getLargestChain();
+            if (largestChain == null) {
+                LOGGER.error("OMG, longest chain returned null ? let's try to get into catchupMode. ");
+                networkState.updateCatchupMode();
+                return new AddBlockResult(block, AddResultType.UNKNOWN, "Something went wrong adding the block!");
+            }
             final int largestChainLength = largestChain.getLength();
             final String largestChainLastBlockHash = !largestChain.isEmpty() ? largestChain.getLastBlock().getBlockHash() : "";
 
@@ -156,6 +159,7 @@ public class SmiloChainService {
 
     /**
      * Attempts to find a chain to place a block in
+     *
      * @param block Block to add
      * @return returns true if the block fits on one of the chains, false if not
      */
@@ -187,12 +191,14 @@ public class SmiloChainService {
     }
 
     // TODO: refactor
+
     /**
      * Adds a block to a chain
-     * @param chain chain to add the block to
-     * @param block block to add
+     *
+     * @param chain                     chain to add the block to
+     * @param block                     block to add
      * @param largestChainLastBlockHash last blockhash of the largest chain
-     * @param largestChain the largest chain on this node
+     * @param largestChain              the largest chain on this node
      * @return true if the block was added, false if an error occurred
      */
     private boolean addBlockToChain(SmiloChain chain, Block block, final String largestChainLastBlockHash, SmiloChain largestChain) {
@@ -264,6 +270,7 @@ public class SmiloChainService {
 
     /**
      * Adds all transactions in a block to the ledgerManager
+     *
      * @param block block to take the transactions from
      */
     private void addTransactions(Block block) {
@@ -286,15 +293,17 @@ public class SmiloChainService {
                 }
             }
             if (loopCount > MAX_LOOP_COUNT) {
-                LOGGER.error("Infinite block detected! Hash: " + block.getBlockHash() + " and height: " + block.getBlockNum()+", TransactionsToApply size "+transactionsToApply.size());
+                LOGGER.error("Infinite block detected! Hash: " + block.getBlockHash() + " and height: " + block.getBlockNum() + ", TransactionsToApply size " + transactionsToApply.size());
                 System.exit(-1); // Todo: make this clean and stable
             }
         }
     }
 
     // TODO: refactor to object instead of string
+
     /**
      * Retrieves all transactions with a given address.
+     *
      * @param addressToFind address to query for
      * @return All transactions involving the address, represented as a string
      */
@@ -328,7 +337,7 @@ public class SmiloChainService {
                 return new AddBlockResult(block, AddResultType.VALIDATION_ERROR, "Block is not a valid block. Don't add it!");
             }
             //Block has not been previously received, so it will be added to the smiloChain (hopefully)
-            LOGGER.info("addBlockToSmiloChain, new block from network!"+" Block: " + block.getPrintableString());
+            LOGGER.info("addBlockToSmiloChain, new block from network!" + " Block: " + block.getPrintableString());
             allBroadcastBlockHashes.add(block.getBlockHash());
             AddBlockResult result = addBlock(block);
             networkState.updateCatchupMode();
@@ -338,7 +347,7 @@ public class SmiloChainService {
 //                peerSender.broadcastContent(PayloadType.COMMIT, block);
             }
 
-            if(result.getType() == AddResultType.ADDED) {
+            if (result.getType() == AddResultType.ADDED) {
                 LOGGER.debug("Remove processed transactions from BlockDataPool");
                 //Remove all transactions from the pendingTransactionPool that appear in the block
                 pendingBlockDataPool.removeTransactionsInBlock(block);
@@ -356,6 +365,7 @@ public class SmiloChainService {
 
     /**
      * Checks if a block has been seen before in the incoming broadcasts
+     *
      * @param blockHash of the block to check
      * @return true if it has been seen before, false if not
      */
@@ -391,6 +401,7 @@ public class SmiloChainService {
 
     /**
      * Retrieve the timestamp of the last block
+     *
      * @return timestamp of the last block
      */
     public Long getLastBlockTimeStamp() {
@@ -399,6 +410,7 @@ public class SmiloChainService {
 
     /**
      * Adds a valid block to the chainQueue and checks the approval rate of the block
+     *
      * @param block the block we add to the chainQueue
      * @return true if the block was added, false if an error occurred
      */
@@ -430,7 +442,8 @@ public class SmiloChainService {
 
     /**
      * Adds an approved block to approvedBlocks when a peer approves it. Afterwards we check if 66% approved the block
-     * @param blockHash the blockhash of the block that has been approved
+     *
+     * @param blockHash      the blockhash of the block that has been approved
      * @param peerIdentifier the identifier of the peer that approved the block
      */
     public void addApprovedBlock(String blockHash, String peerIdentifier) {
@@ -447,17 +460,18 @@ public class SmiloChainService {
      * Checks with a blockhash if a block has been approved by 66% of the peers
      * If a block has 66% approval we'll retrieve the block from the chainQueue and add it to the smilochain
      * If a block doesn't have 66% approval we'll do nothing
+     *
      * @param blockHash the blockhash to check
      */
     private void checkBlockApprovedStatus(String blockHash) {
         Set<String> identifiers = approvedBlocks.getOrDefault(blockHash, new HashSet<>());
         int peerSize = peerStore.getPeers().size();
 
-        if((identifiers.size() * 100 / peerSize) >= 66) {
+        if ((identifiers.size() * 100 / peerSize) >= 66) {
             LOGGER.info("66 Percent approved block: " + blockHash);
             Block block = chainQueue.stream().filter(b -> b.getBlockHash().equals(blockHash)).findFirst().orElse(null);
             if (block == null) {
-               LOGGER.warn("Block not found in chain queue");
+                LOGGER.warn("Block not found in chain queue");
             } else {
                 addBlockToSmiloChain(block);
                 approvedBlocks.remove(blockHash);

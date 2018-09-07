@@ -100,7 +100,10 @@ public class GenesisLoader {
             } else {
                 LOGGER.error("BLOCK " + latestBlock + " NOT VALID BUT IN DB!");
             }
-            genesis = blockStore.getLastBlock();
+            Block lastBlock = blockStore.getLastBlock();
+            if(lastBlock == null){
+                LOGGER.error("Could not get last block from longest chain! ");
+            }
         } else {
             LOGGER.info("Loading GENESIS block...");
 
