@@ -19,7 +19,9 @@ package io.smilo.commons.block;
 import io.smilo.commons.block.data.transaction.Transaction;
 import io.smilo.commons.ledger.LedgerManager;
 import io.smilo.commons.peer.IPeer;
+import io.smilo.commons.peer.PeerSender;
 import io.smilo.commons.peer.PeerStore;
+import io.smilo.commons.peer.payloadhandler.PayloadType;
 import io.smilo.commons.peer.sport.INetworkState;
 import io.smilo.commons.pendingpool.PendingBlockDataPool;
 import org.apache.log4j.Logger;
@@ -77,13 +79,15 @@ public class SmiloChainService {
     private final PeerStore peerStore;
     private final INetworkState networkState;
     private final PendingBlockDataPool pendingBlockDataPool;
+    private final PeerSender peerSender;
 
     public SmiloChainService(LedgerManager ledgerManager,
                              BlockParser blockGenerator,
                              BlockStore blockStore,
                              PeerStore peerStore,
                              INetworkState networkState,
-                             PendingBlockDataPool pendingBlockDataPool) {
+                             PendingBlockDataPool pendingBlockDataPool,
+                             PeerSender peerSender) {
         this.peerStore = peerStore;
         this.networkState = networkState;
         this.pendingBlockDataPool = pendingBlockDataPool;
@@ -92,6 +96,7 @@ public class SmiloChainService {
         this.ledgerManager = ledgerManager;
         this.blockGenerator = blockGenerator;
         this.blockStore = blockStore;
+        this.peerSender = peerSender;
     }
 
     /**
@@ -331,7 +336,8 @@ public class SmiloChainService {
         LOGGER.info("Attempting to add block...");
 
         if (hasSeenBefore(block.getBlockHash())) {
-            LOGGER.info("Have seen block " + block.getBlockHash() + " before... not adding.");
+            LOGGER.info("Have seen block " + block.getBlockNum() + " before..." + block.getBlockHash() + " not adding.... ");
+            tryBlockQueue();
             return new AddBlockResult(block, AddResultType.DUPLICATE, "Block has been seen before");
         } else {
             //Initially, check for duplicate blocks
@@ -347,18 +353,16 @@ public class SmiloChainService {
                 return new AddBlockResult(block, AddResultType.VALIDATION_ERROR, "Block is not a valid block. Don't add it!");
             }
             //Block has not been previously received, so it will be added to the smiloChain (hopefully)
-            LOGGER.info("addBlockToSmiloChain, new block from network!" + " Block: " + block.getPrintableString());
-            allBroadcastBlockHashes.add(block.getBlockHash());
+            LOGGER.info("addBlockToSmiloChain, new block from network! " + block.getBlockNum() + ", Block: " + block.getPrintableString());
             AddBlockResult result = addBlock(block);
-
 
             boolean isAdded = result.getType().isSuccess() && !networkState.getCatchupMode();
             if (isAdded) {
                 LOGGER.info("Added block " + block.getBlockNum() + " with hash: [" + block.getBlockHash().substring(0, 30) + "..." + block.getBlockHash().substring(block.getBlockHash().length() - 30, block.getBlockHash().length() - 1) + "]");
-//                peerSender.broadcastContent(PayloadType.COMMIT, block);
             }
 
             if (result.getType() == AddResultType.ADDED) {
+                allBroadcastBlockHashes.add(block.getBlockHash());
                 LOGGER.debug("Remove processed transactions from BlockDataPool");
                 //Remove all transactions from the pendingTransactionPool that appear in the block
                 pendingBlockDataPool.removeTransactionsInBlock(block);
@@ -368,11 +372,12 @@ public class SmiloChainService {
                 LOGGER.info("Processing queue");
                 tryBlockQueue();
             } else if (result.getType() == AddResultType.QUEUED) {
+                allBroadcastBlockHashes.add(block.getBlockHash());
                 LOGGER.debug("GOING TO PROCESS BLOCK QUEUE, SIZE: " + blockQueue.size());
                 tryBlockQueue();
             }
 
-            LOGGER.info("Block add result: " + result.getType() + " " + result.getMessage());
+            LOGGER.info("Block : " + result.getType() + " " + result.getMessage() + " , Block: " + block.toString());
             return result;
         }
     }
@@ -453,9 +458,9 @@ public class SmiloChainService {
             chainQueue.add(block);
 
             boolean isApproved = checkBlockApprovedStatus(block.getBlockHash());
-            // if block not found on chain
-            if(!isApproved && networkState.getTopBlock() < block.getBlockNum()){
-                LOGGER.error( "BLOCK NOT FOUND, WILL UPDATE topBlock AND REQUEST_NET_STATE");
+            LOGGER.debug("if block not found on chain?");
+            if (!isApproved && networkState.getTopBlock() + 1 < block.getBlockNum()) {
+                LOGGER.error("BLOCK NOT FOUND, WILL UPDATE topBlock AND REQUEST_NET_STATE");
                 networkState.setTopBlock(block.getBlockNum());
                 List<IPeer> ls = new ArrayList<>(peerStore.getPeers());
                 for (int i = 0; i < ls.size(); i++) {
@@ -467,7 +472,6 @@ public class SmiloChainService {
             }
 
 
-
             return new AddBlockResult(block, AddResultType.QUEUED, "Block added to chain queue");
         }
     }
@@ -475,17 +479,49 @@ public class SmiloChainService {
     /**
      * Adds an approved block to approvedBlocks when a peer approves it. Afterwards we check if 66% approved the block
      *
-     * @param blockHash      the blockhash of the block that has been approved
-     * @param peerIdentifier the identifier of the peer that approved the block
+     * @param block
+     * @param peerIdentifier
      */
-    public void addApprovedBlock(String blockHash, String peerIdentifier) {
+    public AddResultType addApprovedBlock(Block block, String peerIdentifier) {
+        String blockHash = block.getBlockHash();
         if (!hasSeenBefore(blockHash)) {
             Set<String> identifiers = approvedBlocks.getOrDefault(blockHash, new HashSet<>());
 
             identifiers.add(peerIdentifier);
             approvedBlocks.put(blockHash, identifiers);
-            checkBlockApprovedStatus(blockHash);
+            boolean isApproved = checkBlockApprovedStatus(blockHash);
+
+            if (!isApproved && networkState.getTopBlock() + 2 < block.getBlockNum()) {
+                LOGGER.error(" ########### BLOCK "+networkState.getTopBlock() + 2 +" IS LOWER THAN TOPBLOCK FOUND IN CHAIN "+block.getBlockNum()+", WILL UPDATE topBlock AND REQUEST_NET_STATE  ########### ");
+                networkState.setTopBlock(block.getBlockNum());
+                List<IPeer> ls = new ArrayList<>(peerStore.getPeers());
+                for (int i = 0; i < ls.size(); i++) {
+                    IPeer p = ls.get(i);
+                    if (p != null) {
+                        p.write("REQUEST_NET_STATE");
+                    }
+                }
+//                return AddResultType.VALIDATION_ERROR;
+            }
+        } else {
+//            LOGGER.warn(" ########### BLOCK DUPLICATED  ########### ");
+            boolean isApproved = checkBlockApprovedStatus(blockHash);
+            if (!isApproved && networkState.getTopBlock() + 1 < block.getBlockNum()) {
+                LOGGER.error(" ########### BLOCK NOT FOUND IN CHAIN, WILL UPDATE topBlock AND REQUEST_NET_STATE  ########### ");
+                networkState.setTopBlock(block.getBlockNum());
+                List<IPeer> ls = new ArrayList<>(peerStore.getPeers());
+                for (int i = 0; i < ls.size(); i++) {
+                    IPeer p = ls.get(i);
+                    if (p != null) {
+                        p.write("REQUEST_NET_STATE");
+                    }
+                }
+//                return AddResultType.VALIDATION_ERROR;
+            }
+            return AddResultType.ADDED;
         }
+
+        return AddResultType.ADDED;
     }
 
     /**
@@ -500,19 +536,25 @@ public class SmiloChainService {
         int peerSize = peerStore.getPeers().size();
 
         if ((identifiers.size() * 100 / peerSize) >= 66) {
-            LOGGER.info("66 Percent approved block: " + blockHash);
+            LOGGER.info("\033[32m66 ########### 66% approved block: " + blockHash + "########### \033[39m");
             Block block = chainQueue.stream().filter(b -> b.getBlockHash().equals(blockHash)).findFirst().orElse(null);
             if (block == null) {
-                LOGGER.error("Block not found in chain queue");
+                LOGGER.error(" ########### Block not found in chain queue ###########");
                 return false;
             } else {
-                addBlockToSmiloChain(block);
+                AddBlockResult result = addBlockToSmiloChain(block);
+                if (!result.getType().name().equals(AddResultType.ADDED.name()) && !result.getType().name().equals(AddResultType.QUEUED.name())) {
+                    LOGGER.error(" ########### Could not add block to smiloChain -> " + result.getType().name() + " ###########");
+                }
+                LOGGER.debug("########### Going to broadcast COMMIT of the approved block " + block.toString() + " ###########");
+                peerSender.broadcastContent(PayloadType.COMMIT, block);
+
                 approvedBlocks.remove(blockHash);
                 return true;
             }
         }
 
-        return true;
+        return false;
     }
 
 }

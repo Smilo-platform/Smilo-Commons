@@ -78,7 +78,7 @@ public class PeerSender {
     }
 
     private void broadcastToNetwork(Network network, String data, boolean includeUnconfirmed) {
-        LOGGER.info("Broadcasting " + data + " to " + network.getIdentifier());
+        LOGGER.trace("Broadcasting " + data + " to " + network.getIdentifier());
 
         Set<String> peerIdentifiers = new HashSet<>(network.getPeerIdentifiers());
         if (includeUnconfirmed) {

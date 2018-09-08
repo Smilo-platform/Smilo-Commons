@@ -16,6 +16,7 @@
 
 package io.smilo.commons.peer;
 
+import io.smilo.commons.block.Block;
 import io.smilo.commons.ledger.AddressManager;
 import io.smilo.commons.peer.payloadhandler.PayloadType;
 import org.apache.log4j.Logger;
@@ -36,8 +37,6 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 public class PeerClient {
 
     private static final Logger LOGGER = Logger.getLogger(PeerClient.class);
-    private static final int DEFAULT_PORT = 8020;
-
     private final Set<String> nodes;
 
     private final int listenPort;
@@ -50,8 +49,11 @@ public class PeerClient {
     private PeerInitializer peerInitializer;
     private PeerStore peerStore;
     private Set<IPeer> pendingPeers;
+    private int MAX_RETRIES;
 
     public PeerClient(@Value("#{'${NODES_LIST}'.split(',')}") Set<String> nodes,
+                      @Value("${DEFAULT_PORT:8020}") int DEFAULT_PORT,
+                      @Value("${MAX_RETRIES:30}") int MAX_RETRIES,
                       ThreadPoolTaskExecutor taskExecutor,
                       AddressManager addressManager, PeerInitializer peerInitializer,
                       PeerStore peerStore) {
@@ -62,6 +64,7 @@ public class PeerClient {
         this.listenPort = DEFAULT_PORT;
         this.nodes = nodes;
         this.pendingPeers = new HashSet<>();
+        this.MAX_RETRIES = MAX_RETRIES;
         initializePeers();
         listenToSocket();
     }
@@ -82,7 +85,7 @@ public class PeerClient {
 
     /**
      * Initialize peers
-     *
+     * <p>
      * 1. read peers form database
      * 2. if no peers are found in the database, add the peers from the property file
      */
@@ -104,7 +107,7 @@ public class PeerClient {
                             IPeer peer = peerInitializer.initializePeer("", address, port);
                             return peer;
                         } catch (UnknownHostException | StringIndexOutOfBoundsException e) {
-                            LOGGER.error("Invalid formatting or unknown hostname " + node + "! Not adding to the database");
+                            LOGGER.error("Invalid formatting or unknown hostname " + node + " , Not adding to the database");
                             return null;
                         }
                     })
@@ -144,22 +147,25 @@ public class PeerClient {
                 peer.run();
             });
 
-            // should be connected within 3 seconds, we don't want to block the flow
-            int amountOfRetries = 30;
+            // should be connected within MAX_RETRIES
+            int amountOfRetries = MAX_RETRIES;
             while (!peer.isInitialized()) {
-               sleep(100);
-               amountOfRetries--;
-               if (amountOfRetries == 0) {
-                   // TODO: review error handling
-                   LOGGER.error("Failed to connect to peer " + peer.getAddress().getHostAddress() + ":" + peer.getRemotePort());
-                   return;
-               }
+                sleep(100);
+                amountOfRetries--;
+                if (amountOfRetries == 0) {
+                    // TODO: review error handling
+                    LOGGER.error("Failed to connect to peer " + peer.toString());
+                    return;
+                }
             }
 
             if (isEmpty(peer.getIdentifier())) {
+                LOGGER.warn("REQUESTING IDENTITY FROM PEER WITH NO VALID IDENTIFIER " + peer.toString());
                 peer.write(PayloadType.REQUEST_IDENTIFIER.name());
-                pendingPeers.add(peer);
-                LOGGER.info("Requesting identity from " + peer.getAddress().getHostAddress() + ":" + peer.getRemotePort());
+                boolean isPeerAdded = pendingPeers.add(peer);
+                if (!isPeerAdded) {
+                    LOGGER.error("COULD NOT ADD PEER TO pendingPeers, " + peer.toString());
+                }
             } else {
                 LOGGER.info("Connected to " + peer.getIdentifier());
                 peerStore.save(peer);
@@ -177,16 +183,21 @@ public class PeerClient {
      */
     public void broadcast(String toBroadcast) {
         Collection<IPeer> peers = peerStore.getPeers();
+        long totalpeers = peers.stream().filter(p -> !p.getIdentifier().equals(addressManager.getDefaultAddress())).count();
+
         if (toBroadcast.length() > 60) {
-            LOGGER.info("Broadcasting " + toBroadcast.substring(0, 30) + "..." + toBroadcast.substring(toBroadcast.length() - 30, toBroadcast.length()) + " to " + peers.size() + " peer" + (peers.size() != 1 ? "s": ""));
-
+            LOGGER.info("Broadcasting " + Block.getSmallHash(toBroadcast) + " to " + totalpeers + " peer" + (totalpeers != 1 ? "s" : ""));
         } else {
-            LOGGER.info("Broadcasting " + toBroadcast + " to " + peers.size() + " peer" + (peers.size() != 1 ? "s": ""));
-
+            LOGGER.info("Broadcasting " + toBroadcast + " to " + totalpeers + " peer" + (totalpeers != 1 ? "s" : ""));
         }
+
         peers.stream().filter(p -> !p.getIdentifier().equals(addressManager.getDefaultAddress()))
                 .forEach(peer -> {
-                    LOGGER.trace("Sent:: " + toBroadcast);
+                    if (toBroadcast.contains("COMMIT")) {
+                        LOGGER.debug("Sent:: " + peer.toString() + ", " + Block.getSmallHash(toBroadcast));
+                    } else {
+                        LOGGER.trace("Sent:: " + peer.toString() + ", " + Block.getSmallHash(toBroadcast));
+                    }
                     peer.write(toBroadcast);
                 });
     }
@@ -201,7 +212,7 @@ public class PeerClient {
         peerStore.getPeers().stream()
                 .filter(p -> !p.getIdentifier().equals(peerToIgnore.getIdentifier()))
                 .forEach(peer -> {
-                    LOGGER.trace("Sent:: " + toBroadcast);
+                    LOGGER.trace("Sent:: " + toBroadcast + ", to: " + peer.toString());
                     peer.write(toBroadcast);
                 });
     }
@@ -223,23 +234,23 @@ public class PeerClient {
     }
 
     public void savePendingPeer(IPeer peer) {
-         pendingPeers.stream().filter(p -> p.equals(peer))
+        pendingPeers.stream().filter(p -> p.equals(peer))
                 .findFirst()
                 .ifPresent(found -> {
-                    LOGGER.debug("Removing: " + peer.getIdentifier() + " from pending peers");
+                    LOGGER.debug("Removing: " + peer.toString() + " from pending peers");
                     pendingPeers.remove(found);
-                    LOGGER.debug("Saving pending peer: " + peer.getIdentifier() + " to peer store");
+                    LOGGER.debug("Saving pending peer: " + peer.toString() + " to peer store");
                     peerStore.save(peer);
                 });
     }
 
     public void disconnect(IPeer peer) {
-        LOGGER.info("Disconnecting: " + peer.getIdentifier());
+        LOGGER.info("Disconnecting: " + peer.toString());
         peer.closePeer();
         pendingPeers.remove(peer);
 
         if (!isEmpty(peer.getIdentifier())) {
-            LOGGER.debug("Removing: " + peer.getIdentifier() + " from peer store");
+            LOGGER.debug("Removing: " + peer.toString() + " from peer store");
             peerStore.remove(peer);
         }
     }

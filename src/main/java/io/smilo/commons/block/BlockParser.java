@@ -26,6 +26,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.apache.log4j.Logger;
 import org.msgpack.core.MessagePack;
 import org.msgpack.core.MessagePacker;
+import org.msgpack.core.MessageTypeException;
 import org.msgpack.core.MessageUnpacker;
 import org.springframework.stereotype.Component;
 
@@ -100,7 +101,7 @@ public class BlockParser implements Parser<Block>, Validator<Block> {
                 LOGGER.error("Block didn't verify for " + block.getRedeemAddress() + " with index " + block.getNodeSignatureIndex());
                 LOGGER.error("Signature mismatch error");
                 LOGGER.error("fullBlock: " + fullBlock);
-                LOGGER.error("nodeSignature: " + block.getNodeSignature());
+                LOGGER.error("nodeSignature: " + Block.getSmallHash(block.getNodeSignature()));
                 return false; //Block mining node signature is not valid
             }
             LOGGER.info("Block " + block.getBlockNum() + " has valid signatures and redeemAddress.");
@@ -134,7 +135,7 @@ public class BlockParser implements Parser<Block>, Validator<Block> {
         }
     }
 
-//     * @param timestamp Timestamp originally set into the block by the node
+    //     * @param timestamp Timestamp originally set into the block by the node
 //     * @param blockNum The block number
 //     * @param previousBlockHash The hash of the previous block
 //     * @param redeemAddress the user's public key
@@ -163,19 +164,18 @@ public class BlockParser implements Parser<Block>, Validator<Block> {
                 transactions.add(transactionParser.deserialize(rawTransaction));
             }
             int size = msgpack.unpackBinaryHeader();
-            byte [] extraData = msgpack.readPayload(size);
+            byte[] extraData = msgpack.readPayload(size);
             if (extraData.length > 0) {
                 LOGGER.error("Unsupported extra data inside: " + Hex.encodeHexString(extraData));
             }
             String blockHash = msgpack.unpackString();
             String blockSignature = msgpack.unpackString();
             Long blockSignatureIndex = msgpack.unpackLong();
-            block = new Block(timestamp,blockNumber,previousBlockHash,redeemAddress,ledgerHash,transactions,blockSignature,blockSignatureIndex.intValue());
+            block = new Block(timestamp, blockNumber, previousBlockHash, redeemAddress, ledgerHash, transactions, blockSignature, blockSignatureIndex.intValue());
             block.setBlockHash(blockHash);
-        } catch (IndexOutOfBoundsException | IOException ex) {
+        } catch (IndexOutOfBoundsException | IOException | MessageTypeException ex) {
             LOGGER.error("Unable to deserialize block", ex);
-            LOGGER.debug("Mensagem: "+ new String(raw));
-
+            LOGGER.debug("BLOCK WITH ERROR: " + new String(raw));
             return null;
         }
         return block;
@@ -209,9 +209,9 @@ public class BlockParser implements Parser<Block>, Validator<Block> {
             msgpack.packLong(block.getNodeSignatureIndex());
             msgpack.flush();
             return out.toByteArray();
-        } catch (IOException er) {
+        } catch (IOException | MessageTypeException er) {
             LOGGER.error("Unable to serialize block", er);
-            LOGGER.debug("Mensagem: "+ block.getRawBlock());
+            LOGGER.debug("BLOCK WITH ERROR: " + block.getRawBlock());
         }
         return null;
     }

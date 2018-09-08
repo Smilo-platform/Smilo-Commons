@@ -30,7 +30,7 @@ public class PongHandler implements PayloadHandler {
     @Override
     public void handlePeerPayload(List<String> parts, IPeer peer) {
         // do nothing, peerReceiver already updated the last seen
-        LOGGER.debug("Received pong from " + peer.getIdentifier());
+        LOGGER.trace("Received pong from " + peer.getIdentifier());
     }
 
     @Override

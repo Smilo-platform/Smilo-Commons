@@ -16,6 +16,8 @@
 
 package io.smilo.commons.peer;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.log4j.Logger;
 
 import javax.annotation.PreDestroy;
@@ -202,22 +204,36 @@ public class Peer implements Runnable, IPeer {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
 
         Peer peer = (Peer) o;
-        return !isEmpty(identifier) && identifier.equals(peer.identifier) || isEmpty(identifier) && !isEmpty(address) && address.equals(peer.address) && remotePort == peer.remotePort;
+
+        return new EqualsBuilder()
+                .append(remotePort, peer.remotePort)
+                .append(identifier, peer.identifier)
+                .append(address.toString(), peer.address.toString())
+                .isEquals();
     }
 
     @Override
     public int hashCode() {
-        int result = isEmpty(identifier) ? identifier.hashCode() : 0;
-        result = 31 * result + address.hashCode();
-        result = 31 * result + remotePort;
-        return result;
+        return new HashCodeBuilder(17, 37)
+                .append(identifier)
+                .append(address.toString())
+                .append(remotePort)
+                .toHashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "Peer{" +
+                "identifier='" + identifier + '\'' +
+                ", address=" + address +
+                ", remotePort=" + remotePort +
+                ", lastSeen=" + lastSeen +
+                ", lastPing=" + lastPing +
+                '}';
     }
 }

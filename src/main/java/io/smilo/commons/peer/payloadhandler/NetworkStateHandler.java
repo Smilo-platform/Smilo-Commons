@@ -36,11 +36,11 @@ public class NetworkStateHandler implements PayloadHandler {
     @Override
     public void handlePeerPayload(List<String> parts, IPeer peer) {
         Integer topBlock = Integer.parseInt(parts.get(1));
-        LOGGER.debug("Going to update topBlock, topBlock from network is: " + topBlock + ", Actual topBlock is: " + networkState.getTopBlock());
         if (networkState.getTopBlock() < topBlock) {
+            LOGGER.debug("Going to update topBlock, topBlock from network is: " + topBlock + ", Actual topBlock is: " + networkState.getTopBlock());
             networkState.setTopBlock(topBlock);
         }else {
-            LOGGER.debug("topBlock that we got from the network is lower than our own topBlock, will ignore!");
+            LOGGER.debug("topBlock that we got from the network is lower than our own topBlock ... "+ topBlock + ", Actual topBlock is: " + networkState.getTopBlock());
         }
     }
 

@@ -71,7 +71,7 @@ public class GenesisLoaderTest extends AbstractSpringTest {
         transactionBuilder.elkan_shares_wealth().queue();
         Block block = blockBuilder.blank().construct();
         peerStore.getPeers().forEach(p -> {
-            smiloChainService.addApprovedBlock(block.getBlockHash(), p.getIdentifier());
+            smiloChainService.addApprovedBlock(block, p.getIdentifier());
         });
         smiloChainService.addBlockToChainQueue(block);
 

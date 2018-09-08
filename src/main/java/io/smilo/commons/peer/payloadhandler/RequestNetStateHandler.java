@@ -40,8 +40,14 @@ public class RequestNetStateHandler implements PayloadHandler {
 
     @Override
     public void handlePeerPayload(List<String> parts, IPeer peer) {
-        LOGGER.debug("Data: NETWORK_STATE, BlockchainLength: " + blockStore.getBlockchainLength() + ", LatestBlock: " + blockStore.getLastBlock().getBlockHash());
-        peer.write("NETWORK_STATE " + blockStore.getBlockchainLength() + " " + blockStore.getLastBlock().getBlockHash());
+//        long blockNum = blockStore.getLastBlock() != null ? blockStore.getLastBlock().getBlockNum() : 0;
+        long blockNum = blockStore.getBlockchainLength();
+        String blockhash = blockStore.getLastBlock() != null ? blockStore.getLastBlock().getBlockHash() : "";
+
+        LOGGER.debug("Data: NETWORK_STATE, BlockchainLength: " + blockNum + ", BlockHash: "
+                + blockhash);
+        peer.write("NETWORK_STATE " + blockNum + " " + blockhash );
+
         pendingBlockDataPool.getPendingData(Transaction.class).stream()
                 .forEach(t -> {
                     peer.write("TRANSACTION " + t);

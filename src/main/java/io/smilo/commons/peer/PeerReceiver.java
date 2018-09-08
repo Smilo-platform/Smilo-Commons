@@ -16,6 +16,7 @@
 package io.smilo.commons.peer;
 
 import io.smilo.commons.block.BlockStore;
+import io.smilo.commons.peer.payloadhandler.PayloadHandler;
 import io.smilo.commons.peer.payloadhandler.PayloadHandlerProvider;
 import io.smilo.commons.peer.payloadhandler.PayloadType;
 import io.smilo.commons.peer.sport.INetworkState;
@@ -24,11 +25,15 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static java.lang.Thread.sleep;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 @Component
@@ -41,22 +46,25 @@ public class PeerReceiver {
     private final PayloadHandlerProvider payloadHandlerProvider;
     private final INetworkState networkState;
 
-    private final Long pingInterval;
-    private final int maxConnectionAttempts;
+    private final Long PING_INTERVAL;
+    private final int MAX_CONNECTION_ATTEMPTS;
     private final INetworkUpdater networkUpdater;
+    private final int MAX_BLOCKS_CATCHUP;
 
     public PeerReceiver(BlockStore blockStore,
                         PeerClient peerClient,
                         PayloadHandlerProvider payloadHandlerProvider,
                         INetworkState networkState,
-                        @Value("${PING_INTERVAL:4320000}") Long pingInterval,
-                        @Value("${MAX_CONNECTION_ATTEMPTS:7}") int maxConnectionAttempts, INetworkUpdater networkUpdater) {
+                        @Value("${PING_INTERVAL:4320000}") Long PING_INTERVAL,
+                        @Value("${MAX_BLOCKS_CATCHUP:25}") int MAX_BLOCKS_CATCHUP,
+                        @Value("${MAX_CONNECTION_ATTEMPTS:7}") int MAX_CONNECTION_ATTEMPTS, INetworkUpdater networkUpdater) {
         this.blockStore = blockStore;
         this.peerClient = peerClient;
         this.payloadHandlerProvider = payloadHandlerProvider;
         this.networkState = networkState;
-        this.pingInterval = pingInterval;
-        this.maxConnectionAttempts = maxConnectionAttempts;
+        this.PING_INTERVAL = PING_INTERVAL;
+        this.MAX_BLOCKS_CATCHUP = MAX_BLOCKS_CATCHUP;
+        this.MAX_CONNECTION_ATTEMPTS = MAX_CONNECTION_ATTEMPTS;
         this.networkUpdater = networkUpdater;
     }
 
@@ -64,8 +72,8 @@ public class PeerReceiver {
      * Retrieve and handle new data from peers
      */
     public void getNewData() {
-        LOGGER.debug("Look for new data from peers...");
-        LOGGER.debug("Connected with " + peerClient.getPeers().size() + " threads...");
+//        LOGGER.debug("Look for new data from peers...");
+//        LOGGER.debug("Connected with " + peerClient.getPeers().size() + " threads...");
 
         // copy the peer list to make sure we don't get any concurrency issues when adding new received peers
         new ArrayList<>(peerClient.getPeers()).stream().filter(p -> p.isInitialized()).forEach(peer -> {
@@ -81,20 +89,22 @@ public class PeerReceiver {
              */
             input.stream().filter(Objects::nonNull).forEach(data -> {
                 if (data.length() > 60) {
-                    LOGGER.debug("got data: " + data.substring(0, 30) + "..." + data.substring(data.length() - 30, data.length()));
+                    LOGGER.trace("got data: " + data.substring(0, 30) + "..." + data.substring(data.length() - 30, data.length()));
                 } else {
-                    LOGGER.debug("got data: " + data);
+                    LOGGER.trace("got data: " + data);
                 }
                 List<String> parts = Arrays.asList(data.split(" "));
                 if (!parts.isEmpty()) {
                     try {
                         handlePayload(parts, peer);
                     } catch (ArrayIndexOutOfBoundsException e) {
-                        LOGGER.error("Incomplete message... " + data);
-                        peer.write("ERROR the message was not complete!");
+                        LOGGER.warn("Invalid message... " + data);
+//                        peer.write("ERROR the message was not complete!");
                     } catch (Exception e) {
                         LOGGER.error("No idea what happened here... MSG: " + data, e);
                     }
+                } else {
+                    LOGGER.error("Invalid message... " + data);
                 }
             });
         });
@@ -108,9 +118,9 @@ public class PeerReceiver {
             try {
 
                 //Broadcast request for new block(s)
-                int blockNum =  blockStore.getBlockchainLength();
+                int blockNum = blockStore.getBlockchainLength();
                 long blockGoal = networkState.getTopBlock();
-                int max_blocks = (int)Math.min(blockGoal - blockNum, 25);
+                int max_blocks = (int) Math.min(blockGoal - blockNum, MAX_BLOCKS_CATCHUP);
 
                 for (int i = 0; i < max_blocks; ++i) {
                     int getBlock = blockStore.getBlockchainLength() + i;
@@ -119,7 +129,7 @@ public class PeerReceiver {
                 }
 
                 //Sleep for a bit, wait for responses before requesting more data to prevent DDos
-                Thread.sleep(500);
+                sleep(500);
             } catch (InterruptedException e) {
                 //If this throws an error, something's terribly off.
                 LOGGER.error("Exception when broadcastNewBlockRequest, something's terribly off.", e);
@@ -128,16 +138,31 @@ public class PeerReceiver {
     }
 
     private void handlePayload(List<String> parts, IPeer peer) {
+        PayloadType type = null;
         try {
             peer.setLastSeen(System.currentTimeMillis());
             if (!isEmpty(peer.getIdentifier())) {
                 peerClient.save(peer);
             }
-            PayloadType type = PayloadType.valueOf(StringUtils.upperCase(parts.get(0)));
-            payloadHandlerProvider.getPayloadHandler(type).handlePeerPayload(parts, peer);
+            type = PayloadType.valueOf(StringUtils.upperCase(parts.get(0)));
         } catch (IllegalArgumentException e) {
-            LOGGER.debug("Unknown payload: " + StringUtils.upperCase(parts.get(0)) + ", do nothing.");
+            LOGGER.warn("Unknown payload: " + StringUtils.upperCase(parts.get(0)) + " , do nothing. ");
         }
+
+        if (type != null) {
+            LOGGER.trace("Will handlePeerPayload after identify PayloadType " + type);
+            try {
+                PayloadHandler p = payloadHandlerProvider.getPayloadHandler(type);
+                if (p != null) {
+                    p.handlePeerPayload(parts, peer);
+                } else {
+                    LOGGER.error("Could not find a handler for the type " + type);
+                }
+            } catch (IllegalArgumentException e) {
+                LOGGER.error("COULD NOT HANDLE PAYLOAD " + type, e);
+            }
+        }
+
     }
 
     /**
@@ -157,10 +182,10 @@ public class PeerReceiver {
         peerClient.getPeers().stream()
                 // Only ping every 5 seconds
                 .filter(p -> p.getLastPing() == null || p.getLastPing() < System.currentTimeMillis() - 5000L)
-                .filter(p -> p.getLastSeen() == null || p.getLastSeen() < System.currentTimeMillis() - pingInterval)
-                .filter(p -> p.getConnectionAttempts() <= maxConnectionAttempts)
+                .filter(p -> p.getLastSeen() == null || p.getLastSeen() < System.currentTimeMillis() - PING_INTERVAL)
+                .filter(p -> p.getConnectionAttempts() <= MAX_CONNECTION_ATTEMPTS)
                 .forEach(p -> {
-                    LOGGER.debug("Pinging " + p.getIdentifier());
+                    LOGGER.trace("Pinging " + p.getIdentifier());
                     p.addConnectionAttempt();
                     p.setLastPing(System.currentTimeMillis());
                     p.write(PayloadType.PING.name());
@@ -168,11 +193,27 @@ public class PeerReceiver {
 
         peerClient.getPeers().stream()
                 .filter(p -> p.getLastPing() != null)
-                .filter(p -> p.getLastSeen() == null || p.getLastSeen() < System.currentTimeMillis() - pingInterval)
-                .filter(p -> p.getConnectionAttempts() > maxConnectionAttempts)
+                .filter(p -> p.getLastSeen() == null || p.getLastSeen() < System.currentTimeMillis() - PING_INTERVAL)
+                .filter(p -> p.getConnectionAttempts() > MAX_CONNECTION_ATTEMPTS)
                 .forEach(p -> {
-                    LOGGER.info("No response, disconnecting: " + p.getIdentifier());
+                    LOGGER.warn("No response, disconnecting: " + p.getIdentifier());
+                    InetAddress address = p.getAddress();
+                    int remotePort = p.getRemotePort();
+                    Socket newSocket;
+                    try {
+                        newSocket = new Socket(address, remotePort);
+                    } catch (IOException e) {
+                        LOGGER.error("Could not retry to connect to peer :( " + p.toString(), e);
+                        return;
+                    }
                     peerClient.disconnect(p);
+//                    try {
+//                        sleep(1000);
+//                    } catch (InterruptedException e) {
+//
+//                    }
+//                    Peer newPeer = new Peer(p.getIdentifier(), newSocket);
+//                    peerClient.connectToPeer(newPeer);
                 });
     }
 

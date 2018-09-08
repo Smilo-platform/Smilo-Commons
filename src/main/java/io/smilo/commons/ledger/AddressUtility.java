@@ -162,7 +162,7 @@ public class AddressUtility {
             } else { //Odd; path component should go first
                 rollingHash = HashUtility.digestSHA256ToBase64(merkleAuthPathComponents[i] + rollingHash);
             }
-            LOGGER.debug("rollingHash: " + rollingHash + " and auth component: " + merkleAuthPathComponents[i]);
+            LOGGER.trace("rollingHash: " + rollingHash + " and auth component: " + merkleAuthPathComponents[i]);
             position /= 2;
         }
         //Final hash, done differently for formatting of address (base32, set length of 32 characters for the top of the Merkle Tree)
@@ -184,7 +184,7 @@ public class AddressUtility {
         for (int i = 0; i < lamportPublicKey.length; i++) {
             lamportPublicSignatureFull += lamportPublicKey[i];
         }
-        LOGGER.debug("lmpSig: " + lamportPublicSignatureFull);
+        LOGGER.trace("lmpSig: " + lamportPublicSignatureFull);
         //First leaf component; bottom layer of Merkle Tree
         return HashUtility.digestSHA256ToBase64(lamportPublicSignatureFull);
     }
@@ -256,7 +256,7 @@ public class AddressUtility {
         int[] authPathIndexes = getAuthenticationPathIndexes(index, layers);
         for (int i = 0; i < authPathIndexes.length; i++) {
             String layerData = merkelTree[i][authPathIndexes[i]];
-            LOGGER.debug("We think the " + (authPathIndexes[i]) + "th index is " + layerData + ".");
+            LOGGER.trace("We think the " + (authPathIndexes[i]) + "th index is " + layerData + ".");
             merklePath += layerData; //readLayerFile.nextLine() will now return the correct hash
             if (i < authPathIndexes.length - 1) //We want all elements in merklePath to be separated by a colon
             {

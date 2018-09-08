@@ -105,12 +105,12 @@ public class MerkleTreeGenerator {
             long lastPrint = System.currentTimeMillis();
             for (int i = 0; i < (int) Math.pow(2, (numLayers - 1)); i++) //2^(numLayers-1) is how many Lamport Signatures need to be generated. Also max possible signatures.
             {
-                LOGGER.debug(i + "/" + Math.pow(2, (numLayers - 1)));
+                LOGGER.trace(i + "/" + Math.pow(2, (numLayers - 1)));
                 double increaseInKeys = (numThreads * keysPerThread);
                 double timeChange = System.currentTimeMillis() - lastPrint;
                 lastPrint = System.currentTimeMillis();
                 double keysPerSecond = increaseInKeys / (timeChange / 1000);
-                LOGGER.debug("Rate: " + keysPerSecond + " keys per second.");
+                LOGGER.trace("Rate: " + keysPerSecond + " keys per second.");
                 //generatePrivateSeeds.nextBytes(privateSeed); //privateSeed now holds the ith private seed for Lamport Signature Generation
                 for (int j = 0; j < numThreads; j++) //Clear thread pool
                 {
@@ -185,7 +185,7 @@ public class MerkleTreeGenerator {
                     if (srt == null) continue;
                     readCount++;
                     if (readCount % 100000 == 0) {
-                        LOGGER.debug((100000.0) / (((double) System.currentTimeMillis() - (double) previousTime) / 1000.0) + " entries per second.");
+                        LOGGER.trace((100000.0) / (((double) System.currentTimeMillis() - (double) previousTime) / 1000.0) + " entries per second.");
                         previousTime = System.currentTimeMillis();
                     }
                 }

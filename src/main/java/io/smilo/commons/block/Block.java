@@ -225,4 +225,26 @@ public class Block extends Content {
     public String getRawBlockDataWithHash() {
         return getRawBlockData() + ",{" + blockHash + "}";
     }
+
+    public static String getSmallHash(String previousBlockHash){
+        String currpreviousBlockHash = previousBlockHash;
+        if (currpreviousBlockHash != null && currpreviousBlockHash.length() > 60) {
+            currpreviousBlockHash = currpreviousBlockHash.substring(0, 30) + "..." + currpreviousBlockHash.substring(currpreviousBlockHash.length() - 30, currpreviousBlockHash.length());
+        }
+        return currpreviousBlockHash;
+
+    }
+    @Override
+    public String toString() {
+        return "Block{" +
+                "blockNum=" + blockNum +
+                ", blockHash='" + getSmallHash(blockHash )+ '\'' +
+                ", previousBlockHash='" + getSmallHash(previousBlockHash) + '\'' +
+                ", redeemAddress='" + redeemAddress + '\'' +
+                ", ledgerHash='" + getSmallHash(ledgerHash )+ '\'' +
+//                ", transactions=" + transactions +
+                ", nodeSignature='" + getSmallHash(nodeSignature )+ '\'' +
+                ", nodeSignatureIndex=" + nodeSignatureIndex +
+                '}';
+    }
 }

@@ -17,6 +17,7 @@
 package io.smilo.commons.peer;
 
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
 
 public interface IPeer {

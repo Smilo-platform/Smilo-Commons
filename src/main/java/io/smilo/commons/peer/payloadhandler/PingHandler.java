@@ -29,7 +29,7 @@ public class PingHandler implements PayloadHandler {
 
     @Override
     public void handlePeerPayload(List<String> parts, IPeer peer) {
-        LOGGER.debug("Sending pong to " + peer.getIdentifier());
+        LOGGER.trace("Sending pong to " + peer.getIdentifier());
         peer.write(PayloadType.PONG.name());
     }
 

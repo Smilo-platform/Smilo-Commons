@@ -59,7 +59,7 @@ public class PeerOutput implements Runnable {
                         try {
                             lock.wait();
                         } catch (InterruptedException e) {
-                            LOGGER.info("Received interruption, quitting PeerOutput loop");
+                            LOGGER.trace("Received interruption, quitting PeerOutput loop");
                             return;
                         }
                     }
@@ -68,9 +68,9 @@ public class PeerOutput implements Runnable {
                 }
                 for (int i = 0; i < copy.size(); i++) {
                     if (copy.get(i).length() > 20) {
-                        LOGGER.debug("Sending " + copy.get(i).substring(0, 20) + " to " + socket.getInetAddress() + ":" + socket.getPort());
+                        LOGGER.trace("Sending " + copy.get(i).substring(0, 20) + " to " + socket.getInetAddress() + ":" + socket.getPort());
                     } else {
-                        LOGGER.debug("Sending " + copy.get(i) + " to " + socket.getInetAddress() + ":" + socket.getPort());
+                        LOGGER.trace("Sending " + copy.get(i) + " to " + socket.getInetAddress() + ":" + socket.getPort());
                     }
                     out.println(copy.get(i));
                 }

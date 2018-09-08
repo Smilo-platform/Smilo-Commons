@@ -155,4 +155,16 @@ public class MockPeer implements IPeer {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "Peer{" +
+                "identifier='" + identifier + '\'' +
+                ", address=" + address +
+                ", remotePort=" + remotePort +
+                ", lastSeen=" + lastSeen +
+                ", lastPing=" + lastPing +
+                '}';
+    }
+
+
 }
