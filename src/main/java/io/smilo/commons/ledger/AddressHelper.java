@@ -31,20 +31,23 @@ public class AddressHelper {
         StringBuffer hexAddress = new StringBuffer();
         hexAddress.append(type.getPrefix());
         hexAddress.append(Hex.toHexString(shaValue).toLowerCase());
-        hexAddress.setLength(40);
         formatAddressCase(hexAddress);
         return hexAddress.toString();
     }
 
     public static boolean checkAddress(String address) {
+        return address.equals(getAddressWithCase(address));
+    }
+
+    public static String getAddressWithCase(String address) {
         StringBuffer hexAddress = new StringBuffer();
         hexAddress.append(address.toLowerCase());
-        hexAddress.setLength(40);
         formatAddressCase(hexAddress);
-        return address.equals(hexAddress.toString());
+        return hexAddress.toString();
     }
 
     private static void formatAddressCase(StringBuffer hexAddress) {
+        hexAddress.setLength(40);
         byte[] test = hexAddress.toString().toLowerCase().getBytes();
         byte[] shaOfHex = HashHelper.keccak256(hexAddress.toString().toLowerCase().getBytes());
         for (int i = 0; i < 20; i++) {
