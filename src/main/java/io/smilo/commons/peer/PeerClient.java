@@ -174,7 +174,7 @@ public class PeerClient {
             }
 
         } catch (Exception e) {
-            LOGGER.warn("Unable to connect to " + peer.getAddress().getHostAddress() + ":" + peer.getRemotePort());
+            LOGGER.warn("Unable to connect to " + peer.getAddress().getHostAddress() + ":" + peer.getRemotePort(), e);
         }
     }
 
