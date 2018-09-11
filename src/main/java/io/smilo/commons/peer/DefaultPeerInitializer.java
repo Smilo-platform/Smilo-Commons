@@ -31,6 +31,16 @@ public class DefaultPeerInitializer implements PeerInitializer {
     private static final Logger LOGGER = Logger.getLogger(DefaultPeerInitializer.class);
 
     @Override
+    public IPeer setUp(String identifier, InetAddress address, int port) {
+        try {
+            return new Peer(identifier, address, port);
+        } catch (IOException e) {
+            LOGGER.error("Unable to set up " + address.getHostAddress() + ":" + port);
+            return null;
+        }
+    }
+
+    @Override
     public IPeer initializePeer(String identifier, InetAddress address, int port) {
         try {
             LOGGER.info("Connecting to " + address.getHostAddress() + ":" + port);
