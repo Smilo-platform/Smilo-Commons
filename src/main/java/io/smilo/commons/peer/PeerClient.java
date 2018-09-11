@@ -276,52 +276,6 @@ public class PeerClient {
         return peerStore.getPeer(identifier);
     }
 
-    public String getExternalIP() {
-        String externalIp = null;
-        try {
-            URL whatismyip = new URL("http://checkip.amazonaws.com");
-            BufferedReader in = new BufferedReader(new InputStreamReader(
-                    whatismyip.openStream()));
-
-            externalIp = in.readLine();
-        } catch(Exception e1) {
-            LOGGER.warn("Unable to retrieve external IP from checkip.amazonaws.com", e1);
-            LOGGER.info("Attempt 2 to retrieve external IP");
-            try {
-                URL whatismyip = new URL("http://icanhazip.com");
-                BufferedReader in = new BufferedReader(new InputStreamReader(
-                        whatismyip.openStream()));
-
-                externalIp = in.readLine();
-            } catch(Exception e2) {
-                LOGGER.warn("Unable to retrieve external IP from icanhazip.com", e2);
-                LOGGER.info("Attempt 3 to retrieve external IP");
-
-                try {
-                    URL whatismyip = new URL("http://ifconfig.me/ip");
-                    BufferedReader in = new BufferedReader(new InputStreamReader(
-                            whatismyip.openStream()));
-
-                    externalIp = in.readLine();
-                } catch(Exception e3) {
-                    LOGGER.warn("Unable to retrieve external IP from ifconfig.me/ip", e3);
-                    LOGGER.info("Attempt 4 to retrieve external IP");
-
-                    try {
-                        URL whatismyip = new URL("http://wtfismyip.com/text");
-                        BufferedReader in = new BufferedReader(new InputStreamReader(
-                                whatismyip.openStream()));
-
-                        externalIp = in.readLine();
-                    } catch(Exception e4) {
-                        LOGGER.warn("Unable to retrieve external IP from wtfismyip.com/text", e4);
-                    }
-                }
-            }
-        }
-        return externalIp;
-    }
-
     public String getHostname() {
         return hostname;
     }
