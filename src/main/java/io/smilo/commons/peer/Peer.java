@@ -198,21 +198,28 @@ public class Peer implements Runnable, IPeer {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
 
         Peer peer = (Peer) o;
-        return !isEmpty(identifier) && identifier.equals(peer.identifier) || isEmpty(identifier) && !isEmpty(connectHost) && connectHost.equals(peer.connectHost) && connectPort == peer.connectPort;
+
+        if (connectPort == 0 && peer.connectPort == 0 && isEmpty(connectHost) && isEmpty(peer.connectHost) && isEmpty(identifier) && isEmpty(peer.identifier)) {
+            return socket.getRemoteSocketAddress().toString().equals(peer.socket.getRemoteSocketAddress().toString());
+        }
+
+        if (connectPort != peer.connectPort) return false;
+        if (identifier != null ? !identifier.equals(peer.identifier) : peer.identifier != null) return false;
+        return connectHost != null ? connectHost.equals(peer.connectHost) : peer.connectHost == null;
     }
 
     @Override
     public int hashCode() {
-        int result = isEmpty(identifier) ? identifier.hashCode() : 0;
-        result = 31 * result + connectHost.hashCode();
+        if (connectPort == 0 && isEmpty(connectHost) && isEmpty(identifier)) {
+            return socket.getRemoteSocketAddress().toString().hashCode() * 31;
+        }
+
+        int result = identifier != null ? identifier.hashCode() : 0;
+        result = 31 * result + (connectHost != null ? connectHost.hashCode() : 0);
         result = 31 * result + connectPort;
         return result;
     }

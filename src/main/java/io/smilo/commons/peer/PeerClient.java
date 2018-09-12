@@ -26,10 +26,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.URL;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -126,8 +123,13 @@ public class PeerClient {
             try (ServerSocket listenSocket = new ServerSocket(listenPort)) {
                 while (shouldRun) //Doesn't actually quit right when shouldRun is changed, as while loop is pending.
                 {
-                    IPeer peer = peerInitializer.initializePeer("", listenSocket.accept());
-                    connectToPeer(peer);
+                    Socket socket = listenSocket.accept();
+                    IPeer peer = peerInitializer.initializePeer("", socket);
+                    if (!getPeers().contains(peer)) {
+                        connectToPeer(peer);
+                    } else {
+                        LOGGER.info("Already connected to " + socket.getRemoteSocketAddress().toString() + ":" + socket.getPort());
+                    }
                 }
 
             } catch (java.net.BindException e) {

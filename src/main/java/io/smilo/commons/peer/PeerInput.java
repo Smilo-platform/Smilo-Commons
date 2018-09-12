@@ -57,7 +57,7 @@ public class PeerInput extends Thread
                 LOGGER.trace("size: " + receivedData.size());
             }
         } catch (Exception e) {
-            LOGGER.warn("Peer " + socket.getInetAddress() + " disconnected.");
+            LOGGER.warn("Peer " + socket.getRemoteSocketAddress().toString() + " disconnected.");
         }
     }
 

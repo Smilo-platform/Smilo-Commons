@@ -65,7 +65,7 @@ public class PeerEncoder {
             Preconditions.checkArgument(!isEmpty(host), "Connect host is empty!");
             Preconditions.checkArgument(peerPort > 0 , "Connect port is empty!");
 
-            IPeer peer = peerInitializer.initializePeer(peerIdentifier, host, peerPort);
+            IPeer peer = peerInitializer.setUp(peerIdentifier, host, peerPort);
             peer.setConnectPort(peerPort);
             peer.setConnectHost(host);
 

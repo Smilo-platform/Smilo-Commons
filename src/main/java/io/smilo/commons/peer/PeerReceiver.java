@@ -164,7 +164,7 @@ public class PeerReceiver {
                 .filter(p -> p.getLastSeen() == null || p.getLastSeen() < System.currentTimeMillis() - pingInterval)
                 .filter(p -> p.getConnectionAttempts() > maxConnectionAttempts)
                 .forEach(p -> {
-                    LOGGER.info("No response, disconnecting: " + p.getIdentifier());
+                    LOGGER.info("No response, disconnecting: " + p.getIdentifier() + p.getConnectHost());
                     peerClient.disconnect(p);
                 });
     }
