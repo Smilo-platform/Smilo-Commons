@@ -34,13 +34,13 @@ public class Account implements Comparable<Account> {
     }
 
     public Account(String address, BigInteger balance, int signatureCount) {
-        this.address = address;
+        this.address = AddressHelper.getAddressWithCase(address);
         this.balance = balance;
         this.signatureCount = signatureCount;
     }
 
     public void setAddress(String address) {
-        this.address = address;
+        this.address = AddressHelper.getAddressWithCase(address);
     }
     
     public String getAddress() {
