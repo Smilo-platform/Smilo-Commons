@@ -65,12 +65,12 @@ public class PeerClientTest extends AbstractSpringTest {
         assertTrue(containsPeer(peers, "127.0.0.1", 8021));
         assertTrue(containsPeer(peers, "127.0.0.1", 8022));
         assertTrue(containsPeer(peers, "127.0.0.1", 8023));
-        assertTrue(containsPeer(peers, "0:0:0:0:0:0:0:1", 8024));
+        assertTrue(containsPeer(peers, "[::1]", 8024));
     }
 
-    private boolean containsPeer(Set<IPeer> peers, String address, int port) {
+    private boolean containsPeer(Set<IPeer> peers, String connectHost, int connectPort) {
         return peers.stream()
-                .anyMatch(p -> p.getAddress().getHostAddress().equals(address) && p.getRemotePort() == port);
+                .anyMatch(p -> p.getConnectHost().equals(connectHost) && p.getConnectPort() == connectPort);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class PeerClientTest extends AbstractSpringTest {
 
     @Test
     public void testBroadcastIgnorePeer() {
-        List<IPeer> peers = asList(peerBuilder.peer_ready().withRemoteHost("localhost").withIdentifier("id1").save(), peerBuilder.peer_ready().withRemoteHost("localhost").withIdentifier("id2").save());
+        List<IPeer> peers = asList(peerBuilder.peer_ready().withConnectHost("localhost").withIdentifier("id1").save(), peerBuilder.peer_ready().withConnectHost("localhost").withIdentifier("id2").save());
 
         IPeer ignorePeer = peerBuilder.peer_ready().save();
         peerClient.broadcastIgnorePeer("REQUEST_NET_STATE", ignorePeer);

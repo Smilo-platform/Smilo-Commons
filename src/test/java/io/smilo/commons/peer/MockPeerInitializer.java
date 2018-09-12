@@ -11,18 +11,17 @@ import java.net.Socket;
 public class MockPeerInitializer implements PeerInitializer {
 
     @Override
-    public IPeer setUp(String identifier, InetAddress address, int port) {
-       return new MockPeer(identifier, address, port);
+    public IPeer setUp(String identifier, String connectHost, int connectPort) {
+       return new MockPeer(identifier, connectHost, connectPort);
     }
 
     @Override
-    public IPeer initializePeer(String identifier, InetAddress inetAddress, int port) {
-        return new MockPeer(identifier, inetAddress, port);
+    public IPeer initializePeer(String identifier, String connectHost, int connectPort) {
+        return new MockPeer(identifier, connectHost, connectPort);
     }
 
     @Override
     public IPeer initializePeer(String identifier, Socket socket) {
-        int remotePort = socket.getPort();
-        return new MockPeer(identifier, socket.getInetAddress(), remotePort);
+        return new MockPeer(identifier);
     }
 }

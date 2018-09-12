@@ -35,9 +35,9 @@ public class PeerEncoderTest extends AbstractSpringTest {
         byte[] encodedPeer = peerEncoder.encode(peer);
         IPeer decodedPeer = peerEncoder.decode(encodedPeer);
 
-        assertEquals(peer.getAddress(), decodedPeer.getAddress());
+        assertEquals(peer.getConnectHost(), decodedPeer.getConnectHost());
         assertEquals(peer.getIdentifier(), decodedPeer.getIdentifier());
-        assertEquals(peer.getRemotePort(), decodedPeer.getRemotePort());
+        assertEquals(peer.getConnectPort(), decodedPeer.getConnectPort());
         assertEquals(1, decodedPeer.getCapabilities().size());
         assertEquals(1, decodedPeer.getCapabilities().get(0).getVersion());
         assertEquals(Capability.P2P, decodedPeer.getCapabilities().get(0).getName());

@@ -37,8 +37,6 @@ public class Peer implements Runnable, IPeer {
     private String connectHost;
     private int connectPort;
 
-    private InetAddress address;
-    private int remotePort;
     private PeerInput peerInput;
     private PeerOutput peerOutput;
     private boolean initialized;
@@ -55,14 +53,12 @@ public class Peer implements Runnable, IPeer {
     public Peer(String identifier, Socket socket) {
         this.socket = socket;
         this.initialized = false;
-        this.address = socket.getInetAddress();
-        this.remotePort = socket.getPort();
         this.identifier = identifier;
         setKeepAlive();
     }
 
-    public Peer(String identifier, InetAddress address, int port) throws IOException {
-        this(identifier, new Socket(address, port));
+    public Peer(String identifier, String connectHost, int port) throws IOException {
+        this(identifier, new Socket(connectHost, port));
         this.identifier = identifier;
     }
 
@@ -112,28 +108,8 @@ public class Peer implements Runnable, IPeer {
     }
 
     @Override
-    public int getRemotePort() {
-        return remotePort;
-    }
-
-    @Override
-    public void setRemotePort(int remotePort) {
-        this.remotePort = remotePort;
-    }
-
-    @Override
     public String getIdentifier() {
         return identifier;
-    }
-
-    @Override
-    public InetAddress getAddress() {
-        return address;
-    }
-
-    @Override
-    public void setAddress(InetAddress address) {
-        this.address = address;
     }
 
     @Override
@@ -230,14 +206,14 @@ public class Peer implements Runnable, IPeer {
         }
 
         Peer peer = (Peer) o;
-        return !isEmpty(identifier) && identifier.equals(peer.identifier) || isEmpty(identifier) && !isEmpty(address) && address.equals(peer.address) && remotePort == peer.remotePort;
+        return !isEmpty(identifier) && identifier.equals(peer.identifier) || isEmpty(identifier) && !isEmpty(connectHost) && connectHost.equals(peer.connectHost) && connectPort == peer.connectPort;
     }
 
     @Override
     public int hashCode() {
         int result = isEmpty(identifier) ? identifier.hashCode() : 0;
-        result = 31 * result + address.hashCode();
-        result = 31 * result + remotePort;
+        result = 31 * result + connectHost.hashCode();
+        result = 31 * result + connectPort;
         return result;
     }
 }

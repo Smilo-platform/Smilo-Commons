@@ -107,10 +107,9 @@ public class PeerClient {
                             int port = Integer.parseInt(node.substring(node.lastIndexOf(':') + 1));
 
                             // can be IPv6, IPv4 or a hostname
-                            InetAddress address = InetAddress.getByName(addressPart);
-                            IPeer peer = peerInitializer.initializePeer("", address, port);
+                            IPeer peer = peerInitializer.initializePeer("", addressPart, port);
                             return peer;
-                        } catch (UnknownHostException | StringIndexOutOfBoundsException e) {
+                        } catch (StringIndexOutOfBoundsException e) {
                             LOGGER.error("Invalid formatting or unknown hostname " + node + "! Not adding to the database");
                             return null;
                         }
@@ -159,7 +158,7 @@ public class PeerClient {
                amountOfRetries--;
                if (amountOfRetries == 0) {
                    // TODO: review error handling
-                   LOGGER.error("Failed to connect to peer " + peer.getAddress().getHostAddress() + ":" + peer.getRemotePort());
+                   LOGGER.error("Failed to connect to peer " + peer.getConnectHost() + ":" + peer.getConnectPort());
                    return;
                }
             }
@@ -167,14 +166,14 @@ public class PeerClient {
             if (isEmpty(peer.getIdentifier())) {
                 peer.write(PayloadType.REQUEST_IDENTIFIER.name());
                 pendingPeers.add(peer);
-                LOGGER.info("Requesting identity from " + peer.getAddress().getHostAddress() + ":" + peer.getRemotePort());
+                LOGGER.info("Requesting identity from " + peer.getConnectHost() + ":" + peer.getConnectPort());
             } else {
                 LOGGER.info("Connected to " + peer.getIdentifier());
                 peerStore.save(peer);
             }
 
         } catch (Exception e) {
-            LOGGER.warn("Unable to connect to " + peer.getAddress().getHostAddress() + ":" + peer.getRemotePort(), e);
+            LOGGER.warn("Unable to connect to " + peer.getConnectHost() + ":" + peer.getConnectPort(), e);
         }
     }
 

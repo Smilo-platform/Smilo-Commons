@@ -1,6 +1,5 @@
 package io.smilo.commons.peer;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +13,6 @@ public class MockPeer implements IPeer {
 
     private String identifier;
 
-    private InetAddress address;
-    private int remotePort;
     private Long lastSeen;
     private Long lastPing;
     private int connectionAttempts;
@@ -23,12 +20,16 @@ public class MockPeer implements IPeer {
     private String connectHost;
     private int connectPort;
 
-    public MockPeer(String identifier, InetAddress address, int port)  {
+    public MockPeer(String identifier) {
+        this.identifier = identifier;
+    }
+
+    public MockPeer(String identifier, String connectHost, int connectPort)  {
         this.writtenData = new ArrayList<>();
         this.setInitialized(true);
         this.identifier = identifier;
-        this.address = address;
-        this.remotePort = port;
+        this.connectHost = connectHost;
+        this.connectPort = connectPort;
         this.capabilities = new ArrayList<>();
     }
 
@@ -45,16 +46,6 @@ public class MockPeer implements IPeer {
     @Override
     public void setInitialized(boolean initialized) {
         this.initialized = initialized;
-    }
-
-    @Override
-    public int getRemotePort() {
-        return remotePort;
-    }
-
-    @Override
-    public void setRemotePort(int remotePort) {
-        this.remotePort = remotePort;
     }
 
     @Override
@@ -91,15 +82,6 @@ public class MockPeer implements IPeer {
     @Override
     public int getConnectionAttempts() {
         return connectionAttempts;
-    }
-
-    public void setAddress(InetAddress inetAddress) {
-        this.address = inetAddress;
-    }
-
-    @Override
-    public InetAddress getAddress() {
-        return address;
     }
 
     @Override
@@ -167,14 +149,14 @@ public class MockPeer implements IPeer {
         }
 
         MockPeer peer = (MockPeer) o;
-        return !isEmpty(identifier) && identifier.equals(peer.identifier) || isEmpty(identifier) && !isEmpty(address) && address.equals(peer.address) && remotePort == peer.remotePort;
+        return !isEmpty(identifier) && identifier.equals(peer.identifier) || isEmpty(identifier) && !isEmpty(connectHost) && connectHost.equals(peer.connectHost) && connectPort == peer.connectPort;
     }
 
     @Override
     public int hashCode() {
         int result = isEmpty(identifier) ? identifier.hashCode() : 0;
-        result = 31 * result + address.hashCode();
-        result = 31 * result + remotePort;
+        result = 31 * result + connectHost.hashCode();
+        result = 31 * result + connectPort;
         return result;
     }
 

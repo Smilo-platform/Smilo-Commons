@@ -31,22 +31,22 @@ public class DefaultPeerInitializer implements PeerInitializer {
     private static final Logger LOGGER = Logger.getLogger(DefaultPeerInitializer.class);
 
     @Override
-    public IPeer setUp(String identifier, InetAddress address, int port) {
+    public IPeer setUp(String identifier, String connectHost, int connectPort) {
         try {
-            return new Peer(identifier, address, port);
+            return new Peer(identifier, connectHost, connectPort);
         } catch (IOException e) {
-            LOGGER.error("Unable to set up " + address.getHostAddress() + ":" + port);
+            LOGGER.error("Unable to set up " + connectHost + ":" + connectPort);
             return null;
         }
     }
 
     @Override
-    public IPeer initializePeer(String identifier, InetAddress address, int port) {
+    public IPeer initializePeer(String identifier, String connectHost, int connectPort) {
         try {
-            LOGGER.info("Connecting to " + address.getHostAddress() + ":" + port);
-            return new Peer(identifier, address, port);
+            LOGGER.info("Connecting to " + connectHost + ":" + connectPort);
+            return new Peer(identifier, connectHost, connectPort);
         } catch (IOException e) {
-            LOGGER.error("Unable to connect to " + address.getHostAddress() + ":" + port);
+            LOGGER.error("Unable to connect to " + connectHost + ":" + connectPort);
             // TODO: remove peer from database?
             return null;
         }

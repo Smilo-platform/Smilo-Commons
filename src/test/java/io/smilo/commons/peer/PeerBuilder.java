@@ -46,33 +46,14 @@ public class PeerBuilder {
 
         private MockPeer peer;
 
-        public PeerBuildCommand blank(String identifier, String hostname, int port) {
-            try {
-                InetAddress inetAddress = InetAddress.getByName(hostname);
-                this.peer = new MockPeer(identifier, inetAddress, port);
-                this.peer.setLastSeen(System.currentTimeMillis());
-                return this;
-            } catch (UnknownHostException e) {
-                throw new RuntimeException(e);
-            }
+        public PeerBuildCommand blank(String identifier, String connectHost, int connectPort) {
+            this.peer = new MockPeer(identifier, connectHost, connectPort);
+            this.peer.setLastSeen(System.currentTimeMillis());
+            return this;
         }
 
         public PeerBuildCommand withInitialized(boolean initialized) {
             peer.setInitialized(initialized);
-            return this;
-        }
-
-        public PeerBuildCommand withRemoteHost(String remoteHost) {
-            try {
-                peer.setAddress(InetAddress.getByName(remoteHost));
-            } catch (UnknownHostException e) {
-                throw new RuntimeException((e));
-            }
-            return this;
-        }
-
-        public PeerBuildCommand withRemotePort(int remotePort) {
-            peer.setRemotePort(remotePort);
             return this;
         }
 

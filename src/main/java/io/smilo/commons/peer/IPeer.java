@@ -31,10 +31,6 @@ public interface IPeer {
 
     void write(String string);
 
-    int getRemotePort();
-
-    void setRemotePort(int remotePort);
-
     String getIdentifier();
 
     void setIdentifier(String identifier);
@@ -50,10 +46,6 @@ public interface IPeer {
     int getConnectionAttempts();
 
     void addConnectionAttempt();
-
-    void setAddress(InetAddress inetAddress);
-
-    InetAddress getAddress();
 
     void closePeer();
 

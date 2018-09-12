@@ -16,6 +16,7 @@
 
 package io.smilo.commons.peer;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.codec.Charsets;
 import org.apache.log4j.Logger;
 import org.ethereum.util.ByteUtil;
@@ -28,6 +29,8 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.springframework.util.StringUtils.isEmpty;
 
 @Component
 public class PeerEncoder {
@@ -59,8 +62,10 @@ public class PeerEncoder {
 
             String peerIdentifier = peerIdRaw == null ? "" : new String(peerIdRaw, Charsets.UTF_8);
             String host = ipBytes == null ? "" : new String(ipBytes, Charsets.UTF_8);
-            InetAddress address = InetAddress.getByName(host);
-            IPeer peer = peerInitializer.initializePeer(peerIdentifier, address, peerPort);
+            Preconditions.checkArgument(!isEmpty(host), "Connect host is empty!");
+            Preconditions.checkArgument(peerPort > 0 , "Connect port is empty!");
+
+            IPeer peer = peerInitializer.initializePeer(peerIdentifier, host, peerPort);
             peer.setConnectPort(peerPort);
             peer.setConnectHost(host);
 
@@ -68,8 +73,8 @@ public class PeerEncoder {
                 peer.setCapabilities(capabilities);
             }
             return peer;
-        } catch (UnknownHostException e) {
-            LOGGER.error("Invalid address! Not able to decodeFromBase64 peer!", e);
+        } catch (Exception e) {
+            LOGGER.error("Unable to decode peer", e);
             return null;
         }
     }
@@ -82,6 +87,9 @@ public class PeerEncoder {
      * @return serialized byte array
      */
     public byte[] encode(IPeer peer) {
+        Preconditions.checkArgument(!isEmpty(peer.getConnectHost()), "Connect host is empty!");
+        Preconditions.checkArgument(peer.getConnectPort() > 0 , "Connect port is empty!");
+
         byte[] ip = RLP.encodeElement(peer.getConnectHost().getBytes(StandardCharsets.UTF_8));
         byte[] port = RLP.encodeInt(peer.getConnectPort());
         byte[] peerId = RLP.encodeElement(peer.getIdentifier().getBytes(StandardCharsets.UTF_8));
