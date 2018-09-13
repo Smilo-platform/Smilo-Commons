@@ -16,6 +16,7 @@
 package io.smilo.commons.peer;
 
 import io.smilo.commons.block.BlockStore;
+import io.smilo.commons.block.BlockSyncer;
 import io.smilo.commons.peer.payloadhandler.PayloadHandlerProvider;
 import io.smilo.commons.peer.payloadhandler.PayloadType;
 import io.smilo.commons.peer.sport.INetworkState;
@@ -36,25 +37,21 @@ public class PeerReceiver {
 
     private static final Logger LOGGER = Logger.getLogger(PeerReceiver.class);
 
-    private final BlockStore blockStore;
+    private final BlockSyncer blockSyncer;
     private final PeerClient peerClient;
     private final PayloadHandlerProvider payloadHandlerProvider;
-    private final INetworkState networkState;
 
     private final Long pingInterval;
     private final int maxConnectionAttempts;
     private final INetworkUpdater networkUpdater;
 
-    public PeerReceiver(BlockStore blockStore,
-                        PeerClient peerClient,
+    public PeerReceiver(PeerClient peerClient,
                         PayloadHandlerProvider payloadHandlerProvider,
-                        INetworkState networkState,
-                        @Value("${PING_INTERVAL:4320000}") Long pingInterval,
+                        BlockSyncer blockSyncer, @Value("${PING_INTERVAL:4320000}") Long pingInterval,
                         @Value("${MAX_CONNECTION_ATTEMPTS:7}") int maxConnectionAttempts, INetworkUpdater networkUpdater) {
-        this.blockStore = blockStore;
+        this.blockSyncer = blockSyncer;
         this.peerClient = peerClient;
         this.payloadHandlerProvider = payloadHandlerProvider;
-        this.networkState = networkState;
         this.pingInterval = pingInterval;
         this.maxConnectionAttempts = maxConnectionAttempts;
         this.networkUpdater = networkUpdater;
@@ -100,25 +97,7 @@ public class PeerReceiver {
         });
     }
 
-    /**
-     * Broadcast a new block request if catchupMode is true
-     */
-    public void broadcastNewBlockRequest() {
-        if (networkState.getCatchupMode()) {
-            try {
-                //Sleep for a bit, wait for responses before requesting more data.
-                Thread.sleep(300);
-                //Broadcast request for new block(s)
-                for (int i = blockStore.getBlockchainLength(); i < networkState.getTopBlock(); i++) {
-                    LOGGER.info("Requesting block " + i + "...");
-                    peerClient.broadcast("GET_BLOCK " + i);
-                }
-            } catch (InterruptedException e) {
-                //If this throws an error, something's terribly off.
-                LOGGER.error("Exception when broadcastNewBlockRequest, something's terribly off.", e);
-            }
-        }
-    }
+
 
     private void handlePayload(List<String> parts, IPeer peer) {
         try {
@@ -138,7 +117,7 @@ public class PeerReceiver {
      */
     public void run() {
         getNewData();
-        broadcastNewBlockRequest();
+        blockSyncer.broadcastNewBlockRequest();
         pingPeers();
         networkUpdater.updateNetworks();
     }
