@@ -240,12 +240,18 @@ public class PeerClient {
         return peers;
     }
 
-    public void savePendingPeer(IPeer peer) {
+    public void savePendingPeer(IPeer peer, List<Capability> capabilities, String hostname, int port, String identifier) {
          pendingPeers.stream().filter(p -> p.equals(peer))
                 .findFirst()
                 .ifPresent(found -> {
                     LOGGER.debug("Removing: " + peer.getIdentifier() + " from pending peers");
                     pendingPeers.remove(found);
+
+                    peer.setCapabilities(capabilities);
+                    peer.setConnectHost(hostname);
+                    peer.setConnectPort(port);
+                    peer.setIdentifier(identifier);
+
                     LOGGER.debug("Saving pending peer: " + peer.getIdentifier() + " to peer store");
                     peerStore.save(peer);
                 });
