@@ -7,6 +7,7 @@ import java.util.Set;
 
 
 public interface INetworkState {
+
     void updateCatchupMode();
 
     boolean getCatchupMode();
@@ -16,7 +17,6 @@ public interface INetworkState {
     void setTopBlock(long topBlock);
 
     Set<Network> getNetworks();
-
 
     Optional<Network> getNetworkByIdentifier(String networkIdentifier);
 
