@@ -51,6 +51,7 @@ public class CoreNetworkState implements INetworkState {
     /**
      * Checks if the chain in the database has the same length as the top block. If the top block is higher than the database, set catchupMode to true
      */
+    @Override
     public void updateCatchupMode() {
         /*
          * Current chain is shorter than peer chains.
@@ -70,6 +71,7 @@ public class CoreNetworkState implements INetworkState {
      *
      * @return true if the current network block is higher than the local database block
      */
+    @Override
     public boolean getCatchupMode() {
         return catchupMode;
     }
@@ -79,25 +81,30 @@ public class CoreNetworkState implements INetworkState {
      *
      * @return the highest blocknum from the network
      */
+    @Override
     public long getTopBlock() {
         return topBlock;
     }
 
-    public void setTopBlock(int topBlock) {
+    @Override
+    public void setTopBlock(long topBlock) {
         this.topBlock = topBlock;
         updateCatchupMode();
     }
 
+    @Override
     public Set<Network> getNetworks() {
         return networks;
     }
 
+    @Override
     public Optional<Network> getNetworkByIdentifier(String networkIdentifier) {
         return this.getNetworks().stream()
                 .filter(network -> network.getIdentifier().equals(networkIdentifier))
                 .findFirst();
     }
 
+    @Override
     public void addNetwork(Network network) {
         networks.add(network);
         peerSender.broadcastToNetwork(network, PayloadType.LINK_NETWORK, network.getIdentifier());
@@ -111,6 +118,7 @@ public class CoreNetworkState implements INetworkState {
 
     }
 
+    @Override
     public void removeNetwork(Network network) {
         // Todo: disconnect
         networks.remove(network);
