@@ -57,9 +57,11 @@ public class Peer implements Runnable, IPeer {
         setKeepAlive();
     }
 
-    public Peer(String identifier, String connectHost, int port) throws IOException {
-        this(identifier, new Socket(connectHost, port));
+    public Peer(String identifier, String connectHost, int connectPort) throws IOException {
+        this(identifier, new Socket(connectHost, connectPort));
         this.identifier = identifier;
+        this.connectHost = connectHost;
+        this.connectPort = connectPort;
     }
 
     public Peer() {
