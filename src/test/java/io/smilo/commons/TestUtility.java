@@ -17,14 +17,11 @@
 package io.smilo.commons;
 
 import io.smilo.commons.block.BlockStore;
+import io.smilo.commons.ledger.*;
 import io.smilo.commons.peer.PeerClient;
 import io.smilo.commons.peer.PeerStore;
 import io.smilo.commons.block.genesis.GenesisLoader;
 import io.smilo.commons.db.Store;
-import io.smilo.commons.ledger.AddressManager;
-import io.smilo.commons.ledger.LedgerManager;
-import io.smilo.commons.ledger.LedgerStore;
-import io.smilo.commons.ledger.PrivateKeyGenerator;
 import io.smilo.commons.pendingpool.PendingBlockDataPool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -103,7 +100,7 @@ public class TestUtility {
         // This is a huge performance boost for the unit test suite
         privateKeys.clear();
         privateKeys.add(new AbstractMap.SimpleEntry<>(address, privateKey));
-        privateKeys.add(new AbstractMap.SimpleEntry<>("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR","BOdbzfoE9Za9a4cGQTpExBYw7mQNFo2B"));
+        privateKeys.add(new AbstractMap.SimpleEntry<>(AccountBuilder.ELKAN,"BOdbzfoE9Za9a4cGQTpExBYw7mQNFo2B"));
 
         genesis.loadGenesis();
     }

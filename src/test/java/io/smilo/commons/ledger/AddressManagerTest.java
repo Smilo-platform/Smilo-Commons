@@ -100,7 +100,7 @@ public class AddressManagerTest extends AbstractSpringTest {
     @Test
     public void testGetSignedTransaction() {
         List<AbstractMap.SimpleEntry<String, String>> privateKeys = (List<AbstractMap.SimpleEntry<String, String>>) ReflectionTestUtils.getField(addressManager, "privateKeys");
-        privateKeys.add(new AbstractMap.SimpleEntry<>("S1CBQMX5QFD2SJWNL7TGX6ZGPWJAJGV5YKDPYR","supersecretkey"));
+        privateKeys.add(new AbstractMap.SimpleEntry<>(AccountBuilder.SECRET,"supersecretkey"));
         Transaction signedTransaction = addressManager.getSignedTransaction("destination", BigInteger.valueOf(100L), addressManager.getDefaultAddressIndexOffset());
         // TODO: verify if the signed transaction is correct
     }
@@ -109,17 +109,17 @@ public class AddressManagerTest extends AbstractSpringTest {
     public void testGetNewAddress() {
         new Expectations() {{ 
             keyGenerator.getPrivateKey();
-            result = "supersecretkey"; 
+            result = "supersecretkey";
         }};
         
         String newAddress = addressManager.getNewAddress();
         // Always the same outcome because private keys are always the same in the test environment
-        assertEquals("S1CBQMX5QFD2SJWNL7TGX6ZGPWJAJGV5YKDPYR", newAddress);
-        
+        assertEquals(AccountBuilder.SECRET, newAddress);
+
         // Should probably be retrieved in a different way as soon as the list of addresses and private keys is actually used
         List<AbstractMap.SimpleEntry<String, String>> privateKeys = (List<AbstractMap.SimpleEntry<String, String>>) ReflectionTestUtils.getField(addressManager, "privateKeys");
 
-        assertTrue(privateKeys.stream().filter(p -> p.getKey() != null).anyMatch(p -> { return p.getValue().equals("supersecretkey") && p.getKey().equals("S1CBQMX5QFD2SJWNL7TGX6ZGPWJAJGV5YKDPYR"); }));
+        assertTrue(privateKeys.stream().filter(p -> p.getKey() != null).anyMatch(p -> { return p.getValue().equals("supersecretkey") && p.getKey().equals(AccountBuilder.SECRET); }));
     }
     
     @Test

@@ -33,42 +33,47 @@ public class AddressUtilityTest extends AbstractSpringTest {
     
     @Test
     public void testValidateValidS1Address() {
-        assertTrue(addressUtility.isAddressFormattedCorrectly("S1234567ABCDEFGHIJKLMNOPQRSTUVWXYZAHXR"));
+        assertTrue(addressUtility.isAddressFormattedCorrectly(AccountBuilder.ELKAN));
     }
 
     @Test
     public void testValidateValidS2Address() {
-        assertTrue(addressUtility.isAddressFormattedCorrectly("S2234567ABCDEFGHIJKLMNOPQRSTUVWXYZH6UD"));
+        assertTrue(addressUtility.isAddressFormattedCorrectly(AccountBuilder.TEST_S2));
     }
 
     @Test
     public void testValidateValidS3Address() {
-        assertTrue(addressUtility.isAddressFormattedCorrectly("S3234567ABCDEFGHIJKLMNOPQRSTUVWXYZTOWI"));
+        assertTrue(addressUtility.isAddressFormattedCorrectly(AccountBuilder.TEST_S3));
     }
 
     @Test
     public void testValidateValidS4Address() {
-        assertTrue(addressUtility.isAddressFormattedCorrectly("S4234567ABCDEFGHIJKLMNOPQRSTUVWXYZ5R4I"));
+        assertTrue(addressUtility.isAddressFormattedCorrectly(AccountBuilder.TEST_S4));
     }
 
     @Test
     public void testValidateValidS5Address() {
-        assertTrue(addressUtility.isAddressFormattedCorrectly("S5234567ABCDEFGHIJKLMNOPQRSTUVWXYZ3YXK"));
+        assertTrue(addressUtility.isAddressFormattedCorrectly(AccountBuilder.TEST_S5));
+    }
+
+    @Test
+    public void testValidateValidPublicContractAddress() {
+        assertTrue(addressUtility.isAddressFormattedCorrectly(AccountBuilder.PUBLIC_CONTRACT));
     }
 
     @Test
     public void testValidateInvalidS1Address() {
-        assertFalse(addressUtility.isAddressFormattedCorrectly("S1234567ABCDEFGHIJKLMNOPQRSTUVWXYZAH12"));
+        assertFalse(addressUtility.isAddressFormattedCorrectly(AccountBuilder.ELKAN.toUpperCase()));
     }
 
     @Test
     public void testValidateInvalidPrefixAddress() {
-        assertFalse(addressUtility.isAddressFormattedCorrectly("S9234567ABCDEFGHIJKLMNOPQRSTUVWXYZAH12"));
+        assertFalse(addressUtility.isAddressFormattedCorrectly("9"+ AccountBuilder.ELKAN.substring(1)));
     }
 
     @Test
     public void testValidateInvalidCharactersetAddress() {
-        assertFalse(addressUtility.isAddressFormattedCorrectly("S12345679BCDEFGHIJKLMNOPQRSTUVWXYZAHXR"));
+        assertFalse(addressUtility.isAddressFormattedCorrectly(AccountBuilder.ELKAN.substring(0,19)+"G"));
     }
 
 }

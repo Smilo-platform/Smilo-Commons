@@ -21,6 +21,7 @@ import io.smilo.commons.HashUtility;
 import io.smilo.commons.block.data.transaction.Transaction;
 import io.smilo.commons.block.data.transaction.TransactionOutput;
 import io.smilo.commons.block.data.transaction.TransactionParser;
+import io.smilo.commons.ledger.AccountBuilder;
 import io.smilo.commons.ledger.MerkleTreeGenerator;
 import io.smilo.commons.pendingpool.PendingBlockDataPool;
 import io.smilo.commons.AbstractSpringTest;
@@ -58,13 +59,13 @@ public class BlockDataTest extends AbstractSpringTest {
         int pendingBlockDataPoolSizeBefore = pendingBlockDataPool.allBroadcastBlockData.size();
         TransactionOutput txOutput = new TransactionOutput();
         txOutput.setOutputAmount(BigInteger.valueOf(10L));
-        txOutput.setOutputAddress("S1CGDE3KP4QTKFDS4METM5FWDWDIATTRDQJ5IK");
+        txOutput.setOutputAddress("11060cbf6051Ea49B357F99afEc99F648126Af70");
 
         Transaction transaction1 = new Transaction();
         transaction1.setTimestamp(1530705940694L);
         transaction1.setAssetId("dummy");
         transaction1.setInputAmount(BigInteger.valueOf(10L));
-        transaction1.setInputAddress("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR");
+        transaction1.setInputAddress(AccountBuilder.ELKAN);
         transaction1.setFee(BigInteger.ZERO);
         transaction1.setTransactionOutputs(Collections.singletonList(txOutput));
         transactionParser.hash(transaction1);
@@ -74,7 +75,7 @@ public class BlockDataTest extends AbstractSpringTest {
         transaction2.setTimestamp(1530705940694L);
         transaction2.setAssetId("dummy");
         transaction2.setInputAmount(BigInteger.valueOf(10L));
-        transaction2.setInputAddress("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR");
+        transaction2.setInputAddress(AccountBuilder.ELKAN);
         transaction2.setFee(BigInteger.ZERO);
         transaction2.setTransactionOutputs(Collections.singletonList(txOutput));
         transactionParser.hash(transaction2);

@@ -16,9 +16,11 @@
 
 package io.smilo.commons.ledger;
 
+import io.smilo.commons.HashHelper;
 import io.smilo.commons.HashUtility;
 import io.smilo.commons.db.Store;
 import org.apache.log4j.Logger;
+import org.spongycastle.util.encoders.Hex;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -191,29 +193,15 @@ public class MerkleTreeGenerator {
                 }
 
             }
-            String preAddress = HashUtility.digestSHA256ToBase32(layer[numLayers-2] [0] + layer[numLayers-2] [1]);
-            String address; //S# + pre-address + first 4 characters of hash of pre-address (sanity check, protect against mistypes)
-            if (numLayers == 14) {
-                address = "S1" + preAddress + HashUtility.digestSHA256ToBase32("S1" + preAddress).substring(0, 4); //14-layer is a C1 address
-            } else if (numLayers == 15) {
-                address = "S2" + preAddress + HashUtility.digestSHA256ToBase32("S2" + preAddress).substring(0, 4); //15-layer is a C2 address
-            } else if (numLayers == 16) {
-                address = "S3" + preAddress + HashUtility.digestSHA256ToBase32("S3" + preAddress).substring(0, 4); //16-layer is a C3 address
-            } else if (numLayers == 17) {
-                address = "S4" + preAddress + HashUtility.digestSHA256ToBase32("S4" + preAddress).substring(0, 4); //17-layer is a C4 address
-            } else if (numLayers == 18) {
-                address = "S5" + preAddress + HashUtility.digestSHA256ToBase32("S5" + preAddress).substring(0, 4); //18-layer is a C5 address
-            } else //Not a Smilo address!
-            {
-                address = "X1" + preAddress + HashUtility.digestSHA256ToBase32("X1" + preAddress).substring(0, 4); //Non-supported layer
-            }
 
+            byte[] preAddress = HashHelper.sha256((layer[numLayers-2] [0] + layer[numLayers-2] [1]).getBytes());
+            String address = AddressHelper.formatAddress(AddressHelper.getType(numLayers), preAddress);
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream oos = new ObjectOutputStream(bos);
             oos.writeObject(layer);
 
             oos.flush();
-            store.put(COLLECTION_NAME, address.getBytes(StandardCharsets.UTF_8), bos.toByteArray());
+            store.put(COLLECTION_NAME, address.toUpperCase().getBytes(StandardCharsets.UTF_8), bos.toByteArray());
             return address;
         } catch (Exception e) {
             LOGGER.error("Unable to generate merkle tree from scratch file");
@@ -222,12 +210,12 @@ public class MerkleTreeGenerator {
     }
 
     public int getAddressNumberOfLayers(String address) {
-        switch (address.substring(0,2)) {
-            case "S1" : return 14;
-            case "S2" : return 15;
-            case "S3" : return 16;
-            case "S4" : return 17;
-            case "S5" : return 18;
+        switch (address.substring(0,1)) {
+            case "1" : return 14;
+            case "2" : return 15;
+            case "3" : return 16;
+            case "4" : return 17;
+            case "5" : return 18;
             default : return -1;
         }
     }

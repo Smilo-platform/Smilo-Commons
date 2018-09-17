@@ -1,5 +1,6 @@
 package io.smilo.commons.peer;
 
+import io.smilo.commons.ledger.AccountBuilder;
 import io.smilo.commons.ledger.MerkleTreeGenerator;
 import io.smilo.commons.peer.Capability;
 import io.smilo.commons.peer.PeerClient;
@@ -20,11 +21,11 @@ public class PeerBuilder {
     private MerkleTreeGenerator treeGen;
 
     public PeerBuildCommand blank() {
-        return new PeerBuildCommand().blank("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR","localhost", 80);
+        return new PeerBuildCommand().blank(AccountBuilder.ELKAN,"localhost", 80);
     }
 
     public PeerBuildCommand blank(String hostname, int port) {
-        return new PeerBuildCommand().blank("S1RQ3ZVRQ2K42FTXDONQVFVX73Q37JHIDCSFAR", hostname, port);
+        return new PeerBuildCommand().blank(AccountBuilder.ELKAN, hostname, port);
     }
 
     public PeerBuildCommand peer_ready() {
