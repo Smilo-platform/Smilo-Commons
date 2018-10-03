@@ -42,6 +42,7 @@ public class Peer implements Runnable, IPeer {
     private Long lastPing;
     private List<Capability> capabilities = new ArrayList<>();
     private int connectionAttempts = 0;
+    private final static int PORT = 8020;
 
     /**
      * Constructor sets socket
@@ -52,7 +53,7 @@ public class Peer implements Runnable, IPeer {
         this.socket = socket;
         this.initialized = false;
         this.address = socket.getInetAddress();
-        this.remotePort = socket.getPort();
+        this.remotePort = PORT;
         this.identifier = identifier;
         setKeepAlive();
     }
@@ -60,6 +61,7 @@ public class Peer implements Runnable, IPeer {
     public Peer(String identifier, InetAddress address, int port) throws IOException {
         this(identifier, new Socket(address, port));
         this.identifier = identifier;
+        this.remotePort = port;
     }
 
     public Peer() {

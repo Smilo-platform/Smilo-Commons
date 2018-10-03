@@ -123,7 +123,6 @@ public class PeerClient {
                     IPeer peer = peerInitializer.initializePeer("", listenSocket.accept());
                     connectToPeer(peer);
                 }
-
             } catch (java.net.BindException e) {
                 LOGGER.error("Port " + listenPort + " already in use", e);
                 System.exit(-1);
@@ -140,9 +139,7 @@ public class PeerClient {
      */
     public void connectToPeer(IPeer peer) {
         try {
-            taskExecutor.execute(() -> {
-                peer.run();
-            });
+            taskExecutor.execute(() -> peer.run());
 
             // should be connected within 3 seconds, we don't want to block the flow
             int amountOfRetries = 30;
@@ -155,7 +152,6 @@ public class PeerClient {
                    return;
                }
             }
-
             if (isEmpty(peer.getIdentifier())) {
                 peer.write(PayloadType.REQUEST_IDENTIFIER.name());
                 pendingPeers.add(peer);
