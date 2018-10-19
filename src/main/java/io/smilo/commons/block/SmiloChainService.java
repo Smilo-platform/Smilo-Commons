@@ -374,6 +374,15 @@ public class SmiloChainService {
     }
 
     /**
+     * Add the block to the list of seen before blocks.
+     * This is mostly be used by declined block to prevent consensus to start again.
+     * @param blockHash
+     */
+    public void addBlockhashToSeenBeforeList(String blockHash) {
+        allBroadcastBlockHashes.add(blockHash);
+    }
+
+    /**
      * Try to add blocks in the queue to the chain
      */
     private void tryBlockQueue() {
@@ -478,5 +487,4 @@ public class SmiloChainService {
             }
         }
     }
-
 }
