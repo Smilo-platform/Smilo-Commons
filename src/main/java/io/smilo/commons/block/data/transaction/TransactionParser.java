@@ -244,13 +244,13 @@ public class TransactionParser implements Parser<Transaction>, Validator<Transac
             int size = msgpack.unpackBinaryHeader();
             byte [] extraData = msgpack.readPayload(size);
             if (extraData.length > 0) {
-                LOGGER.error("Unsupported extra data inside: " + Hex.encodeHexString(extraData));
+                LOGGER.debug("Unsupported extra data inside: " + Hex.encodeHexString(extraData));
             }
             String hash = msgpack.unpackString();
             String signature = msgpack.unpackString();
             Long signatureIndex = msgpack.unpackLong();
 
-            transaction = new Transaction(timestamp, assetId, inputAddress, inputAmount, fee, outputs, hash, signature, signatureIndex);
+            transaction = new Transaction(timestamp, assetId, inputAddress, inputAmount, fee, outputs,"", hash, signature, signatureIndex);
         } catch (ArrayIndexOutOfBoundsException | IOException ex) {
             LOGGER.error("Unable to deserialize transaction", ex);
         }

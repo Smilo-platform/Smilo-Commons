@@ -37,10 +37,11 @@ public class Message extends BlockData {
                    List<String> outputAddresses,
                    String content,
                    BigInteger fee,
+                   String extraData,
                    String dataHash,
                    String signatureData,
                    Long signatureIndex) {
-        super(timestamp, inputAddress, fee, signatureData, signatureIndex, dataHash);
+        super(timestamp, inputAddress, fee, extraData, signatureData, signatureIndex, dataHash);
         this.outputAddresses = outputAddresses;
         this.content = content;
     }

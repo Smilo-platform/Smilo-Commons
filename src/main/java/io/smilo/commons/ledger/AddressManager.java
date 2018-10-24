@@ -143,7 +143,7 @@ public class AddressManager {
         String privateKey = getDefaultPrivateKey();
         String signature = addressUtility.getMerkleSignature(transactionData, privateKey, signatureIndex, address);
         return new Transaction(System.currentTimeMillis(), "", getDefaultAddress(), sendAmount, BigInteger.ZERO,
-                Arrays.asList(new TransactionOutput(destinationAddress, sendAmount)), "", signature, signatureIndex);
+                Arrays.asList(new TransactionOutput(destinationAddress, sendAmount)),"",  "", signature, signatureIndex);
     }
 
     /**

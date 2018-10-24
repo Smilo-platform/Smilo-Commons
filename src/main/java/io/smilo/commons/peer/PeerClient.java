@@ -139,7 +139,7 @@ public class PeerClient {
      */
     public void connectToPeer(IPeer peer) {
         try {
-            taskExecutor.execute(() -> peer.run());
+            taskExecutor.execute(peer::run);
 
             // should be connected within 3 seconds, we don't want to block the flow
             int amountOfRetries = 30;

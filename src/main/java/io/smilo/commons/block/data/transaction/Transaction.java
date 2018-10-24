@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
 
-//        TRANSACTION timestamp;assetID;inputAddress;inputAmount;outputAddress1;outputAmount1;outputAddress2;outputAmount2;...;...;txFee;txHash;signatureData;signatureIndex
+//        TRANSACTION timestamp;assetID;inputAddress;inputAmount;outputAddress1;outputAmount1;outputAddress2;outputAmount2;...;...;txFee;extraData;txHash;signatureData;signatureIndex
 public class Transaction extends BlockData {
 
     private String assetId = "";
@@ -45,10 +45,11 @@ public class Transaction extends BlockData {
                        BigInteger inputAmount,
                        BigInteger fee,
                        List<TransactionOutput> transactionOutputs,
+                       String extraData,
                        String dataHash,
                        String signatureData,
                        Long signatureIndex) {
-        super(timestamp, inputAddress, fee, signatureData, signatureIndex, dataHash);
+        super(timestamp, inputAddress, fee, extraData, signatureData, signatureIndex, dataHash);
         this.assetId = assetId;
         this.inputAmount = inputAmount;
         this.transactionOutputs = transactionOutputs;
@@ -137,6 +138,7 @@ public class Transaction extends BlockData {
         hash = 97 * hash + Objects.hashCode(this.getInputAddress());
         hash = 97 * hash + Objects.hashCode(this.inputAmount);
         hash = 97 * hash + Objects.hashCode(this.getFee());
+        hash = 97 * hash + Objects.hashCode(this.getExtraData());
         hash = 97 * hash + Objects.hashCode(this.transactionOutputs);
         hash = 97 * hash + Objects.hashCode(this.getDataHash());
         hash = 97 * hash + Objects.hashCode(this.getSignatureData());
@@ -160,6 +162,9 @@ public class Transaction extends BlockData {
             return false;
         }
         if (!Objects.equals(this.getInputAddress(), other.getInputAddress())) {
+            return false;
+        }
+        if (!Objects.equals(this.getExtraData(), other.getExtraData())) {
             return false;
         }
         if (!Objects.equals(this.getDataHash(), other.getDataHash())) {
@@ -196,6 +201,6 @@ public class Transaction extends BlockData {
             data += ";" + txOutput.getOutputAddress() + ";" + txOutput.getOutputAmount();
         }
 
-        return data + ";" + getFee();
+        return data + ";" + getFee() + ";" + getExtraData();
     }
 }

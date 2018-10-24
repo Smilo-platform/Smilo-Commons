@@ -61,7 +61,7 @@ public class GenesisLoaderTest extends AbstractSpringTest {
         genesisLoader.loadGenesis();
         assertEquals(0, blockStore.getLastBlock().getBlockNum());
         // If anything changed, the hash below will change. Validating the hash should validate all data inside indirectly.
-        assertEquals("9271AF9DD5172BABDB1C983ECAD2AA8B57BAA246BEBA74738CD6EF3125313407", blockStore.getLastBlock().getBlockHash());
+        assertEquals("F96BD2EE2770B4CBD8BE49056DD1F88DC8F1CF462FAB142144214156EA0266AA", blockStore.getLastBlock().getBlockHash());
     }
 
     @Test
