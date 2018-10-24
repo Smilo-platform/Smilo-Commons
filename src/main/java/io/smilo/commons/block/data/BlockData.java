@@ -27,16 +27,18 @@ public abstract class BlockData extends Content {
 
     private String inputAddress = "";
     private BigInteger fee = BigInteger.ZERO;
+    private Optional<String> extraData = Optional.of("");
     private Optional<String> signatureData = Optional.of("");
     private long signatureIndex;
     private Optional<String> dataHash = Optional.of("");
 
     protected BlockData() {}
 
-    protected BlockData(Long timestamp, String inputAddress, BigInteger fee, String signatureData, Long signatureIndex, String dataHash) {
+    protected BlockData(Long timestamp, String inputAddress, BigInteger fee, String extraData, String signatureData, Long signatureIndex, String dataHash) {
         super(timestamp);
         this.inputAddress = inputAddress;
         this.fee = fee;
+        this.extraData = Optional.ofNullable(extraData);
         this.signatureData = Optional.ofNullable(signatureData);
         this.signatureIndex = signatureIndex;
         this.dataHash = Optional.of(dataHash);
@@ -58,6 +60,10 @@ public abstract class BlockData extends Content {
         return signatureIndex;
     }
 
+    public String getExtraData() {
+        return extraData.orElse("");
+    }
+
     public String getDataHash() {
         return dataHash.orElse("");
     }
@@ -68,6 +74,10 @@ public abstract class BlockData extends Content {
 
     public void setFee(BigInteger fee) {
         this.fee = fee;
+    }
+
+    public void setExtraData(String extraData) {
+        this.extraData = Optional.ofNullable(extraData);
     }
 
     public void setSignatureData(String signatureData) {
